@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>Sabika Preview Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Rubik', sans-serif;
+      background-color: #09090B;
+      color: #F4F4F5;
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    /* Radial glows */
+    .glow-1 {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(184, 150, 12, 0.15) 0%, transparent 70%);
+      filter: blur(40px);
+      z-index: 1;
+    }
+    /* Grid background */
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: 2;
+    }
+    /* Content wrapper */
+    .content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 35px;
+    }
+    /* Logo watermark behind */
+    .logo-watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(1.8);
+      opacity: 0.03;
+      z-index: 3;
+      width: 400px;
+      height: auto;
+    }
+    /* Main Logo Image */
+    .logo-img {
+      height: 100px;
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 0 20px rgba(184, 150, 12, 0.3));
+    }
+    /* Title/Tagline */
+    .tagline {
+      font-size: 28px;
+      font-weight: 500;
+      color: #A1A1AA;
+      letter-spacing: 0.5px;
+      max-width: 800px;
+      line-height: 1.5;
+    }
+    /* Badges */
+    .badges {
+      display: flex;
+      gap: 15px;
+      margin-top: 10px;
+    }
+    .badge {
+      background: rgba(184, 150, 12, 0.1);
+      border: 1px solid rgba(184, 150, 12, 0.25);
+      color: #B8960C;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <div class="glow-1"></div>
+  <img class="logo-watermark" src="/assets/images/logo_footer.svg" alt="" />
+  
+  <div class="content">
+    <!-- Logo -->
+    <img class="logo-img" src="/assets/images/logo_footer.svg" alt="Sabika" />
+    
+    <!-- Tagline -->
+    <div class="tagline">
+      رفيقك الاستثماري في عالم الذهب · أسعار لحظية وتحليلات ذكية
+    </div>
+    
+    <!-- Badges -->
+    <div class="badges">
+      <div class="badge">أسعار لحظية</div>
+      <div class="badge">تحليلات الصاغة</div>
+      <div class="badge">حاسبة الاستثمار</div>
+    </div>
+  </div>
+</body>
+</html>
