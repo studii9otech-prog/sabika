@@ -1,26 +1,474 @@
-@import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@font-face {
+  font-family: 'Thmanyah Serif Display';
+  src: url('../public/assets/fonts/thmanyah-serif-display-bold.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
 }
+
+@font-face {
+  font-family: 'Thmanyah Serif Display';
+  src: url('../public/assets/fonts/thmanyah-serif-display-bold.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Thmanyah Serif Display';
+  src: url('../public/assets/fonts/thmanyah-serif-display-bold.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Thmanyah Serif Display';
+  src: url('../public/assets/fonts/thmanyah-serif-display-bold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Thmanyah Serif Display';
+  src: url('../public/assets/fonts/thmanyah-serif-display-bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-rubik), sans-serif;
+  --font-mono: var(--font-rubik), sans-serif;
+  --font-arabic: var(--font-rubik), sans-serif;
+  --font-display: 'Thmanyah Serif Display', serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Sabika Design Tokens */
+  --color-gold: #B8960C;
+  --color-gold-light: #F3E8C4;
+  --color-gold-dark: #806808;
+  --color-up: #059669;
+  --color-up-bg: #ECFDF5;
+  --color-down: #DC2626;
+  --color-down-bg: #FEF2F2;
+  --color-neutral-mkt: #71717A;
+  --color-neutral-bg: #F4F4F5;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: #FFFFFF;
+  --foreground: #09090B;
+  --card: #FFFFFF;
+  --card-foreground: #09090B;
+  --popover: #FFFFFF;
+  --popover-foreground: #09090B;
+  --primary: #B8960C;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F4F4F5;
+  --secondary-foreground: #09090B;
+  --muted: #F4F4F5;
+  --muted-foreground: #71717A;
+  --accent: #F4F4F5;
+  --accent-foreground: #B8960C;
+  --destructive: #DC2626;
+  --border: #E4E4E7;
+  --input: #E4E4E7;
+  --ring: #B8960C;
+  --chart-1: #B8960C;
+  --chart-2: #059669;
+  --chart-3: #DC2626;
+  --chart-4: #71717A;
+  --chart-5: #A1A1AA;
+  --radius: 12px;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #09090B;
+  --sidebar-primary: #B8960C;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F4F4F5;
+  --sidebar-accent-foreground: #B8960C;
+  --sidebar-border: #E4E4E7;
+  --sidebar-ring: #B8960C;
+
+  /* Sabika Custom Tokens */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F4F4F5;
+  --bg-dark: #09090B;
+  --text-primary: #09090B;
+  --text-secondary: #71717A;
+  --text-muted: #A1A1AA;
+  --gold: #B8960C;
+  --gold-light: #F3E8C4;
+  --gold-dark: #806808;
+  --up: #059669;
+  --up-bg: #ECFDF5;
+  --down: #DC2626;
+  --down-bg: #FEF2F2;
+  --neutral-mkt: #71717A;
+  --neutral-bg: #F4F4F5;
+  --shadow: rgba(0, 0, 0, 0.02);
+}
+
+.dark {
+  --background: #09090B;
+  --foreground: #F4F4F5;
+  --card: #09090B;
+  --card-foreground: #F4F4F5;
+  --popover: #09090B;
+  --popover-foreground: #F4F4F5;
+  --primary: #B8960C;
+  --primary-foreground: #09090B;
+  --secondary: #18181B;
+  --secondary-foreground: #F4F4F5;
+  --muted: #18181B;
+  --muted-foreground: #A1A1AA;
+  --accent: #18181B;
+  --accent-foreground: #B8960C;
+  --destructive: #EF4444;
+  --border: #27272A;
+  --input: #27272A;
+  --ring: #B8960C;
+  --sidebar: #09090B;
+  --sidebar-foreground: #F4F4F5;
+  --sidebar-primary: #B8960C;
+  --sidebar-primary-foreground: #09090B;
+  --sidebar-accent: #18181B;
+  --sidebar-accent-foreground: #B8960C;
+  --sidebar-border: #27272A;
+  --sidebar-ring: #B8960C;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  /* =============================================
+     FONT SYSTEM — Single source of truth
+     Rubik applies to ALL elements via html.
+     Only font-price (numbers) uses Geist Mono.
+     ============================================= */
+
+  html,
+  body,
+  *,
+  *::before,
+  *::after {
+    font-family: var(--font-rubik), sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Display font — headings/hero sections only */
+  .font-display {
+    font-family: 'Thmanyah Serif Display', serif !important;
+  }
+
+  /* Heading font — card titles, dialogs, sheets */
+  .font-heading {
+    font-family: var(--font-rubik), sans-serif !important;
+  }
+
+  /* Tabular numbers for prices — Rubik with tabular-nums */
+  .font-price {
+    font-family: var(--font-rubik), sans-serif;
+    font-variant-numeric: tabular-nums;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+
+/* Sabika Animations */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes price-flash-up {
+  0% { color: var(--up); }
+  100% { color: var(--foreground); }
+}
+
+@keyframes price-flash-down {
+  0% { color: var(--down); }
+  100% { color: var(--foreground); }
+}
+
+@keyframes ticker-scroll-ltr {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-25%); }
+}
+
+@keyframes ticker-scroll-rtl {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(25%); }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 25%,
+    var(--border) 50%,
+    var(--bg-secondary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.animate-ticker-ltr {
+  animation: ticker-scroll-ltr 30s linear infinite;
+}
+
+.animate-ticker-rtl {
+  animation: ticker-scroll-rtl 30s linear infinite;
+}
+
+.animate-ticker-ltr:hover,
+.animate-ticker-rtl:hover {
+  animation-play-state: paused;
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px -10px rgba(184, 150, 12, 0.15);
+  border-color: rgba(184, 150, 12, 0.4);
+}
+.dark .card-hover:hover {
+  box-shadow: 0 12px 35px -12px rgba(184, 150, 12, 0.28);
+  border-color: rgba(184, 150, 12, 0.6);
+}
+
+/* Gold gradient */
+.gold-gradient {
+  color: var(--primary);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #FFE89C 0%, #D8A51D 50%, #9F7506 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .gold-gradient-text {
+  background: linear-gradient(135deg, #FFE89C 0%, #E6BA3C 50%, #B8960C 100%);
+}
+
+/* Glassy background grid pattern */
+.glassy-grid {
+  position: relative;
+}
+.glassy-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(184, 150, 12, 0.05) 0%, transparent 70%),
+    linear-gradient(to right, rgba(184, 150, 12, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(184, 150, 12, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px, 32px 32px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dark .glassy-grid::before {
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(184, 150, 12, 0.08) 0%, transparent 60%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+/* Up/Down colors */
+.text-up { color: var(--up); }
+.text-down { color: var(--down); }
+.text-neutral-mkt { color: var(--neutral-mkt); }
+.bg-up-light { background-color: var(--up-bg); }
+.bg-down-light { background-color: var(--down-bg); }
+.bg-neutral-light { background-color: var(--neutral-bg); }
+
+/* Header blur */
+.header-blur {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Premium Glass & Backlight Glow Utilities */
+.premium-glass {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(184, 150, 12, 0.04);
+}
+.dark .premium-glass {
+  background: rgba(9, 9, 11, 0.6);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.12; transform: scale(1) translate(-50%, -50%); }
+  50% { opacity: 0.18; transform: scale(1.08) translate(-50%, -50%); }
+}
+
+.glow-gold-radial {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(184, 150, 12, 0.18) 0%, transparent 70%);
+  filter: blur(50px);
+  pointer-events: none;
+  z-index: -5;
+  animation: pulse-glow 10s ease-in-out infinite;
+}
+
+/* ==============================
+   Hero Terminal Card (Dark-first)
+   ============================== */
+
+.hero-terminal-card {
+  background: #0F0F12;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 0 0 1px rgba(184, 150, 12, 0.08),
+    0 24px 60px -12px rgba(0, 0, 0, 0.6),
+    0 8px 24px -4px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.dark .hero-terminal-card {
+  background: #0A0A0D;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Light mode override */
+:root:not(.dark) .hero-terminal-card {
+  background: #0F0F12;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hero-terminal-header {
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hero-terminal-footer {
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Karat tabs */
+.hero-karat-tabs {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 4px;
+}
+
+.hero-tab-active {
+  background: rgba(184, 150, 12, 0.18);
+  border: 1px solid rgba(184, 150, 12, 0.35);
+  box-shadow: 0 0 12px rgba(184, 150, 12, 0.12);
+}
+
+.hero-tab-inactive {
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.hero-tab-inactive:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Hero price number — gold gradient on dark */
+.hero-price-number {
+  background: linear-gradient(135deg, #FFE9A0 0%, #D4A820 40%, #9F7506 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle language switch/mount transition */
+@keyframes localeTransition {
+  from {
+    opacity: 0;
+    transform: scale(0.99) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.locale-transition-container {
+  animation: localeTransition 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
