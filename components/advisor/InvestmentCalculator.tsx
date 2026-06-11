@@ -151,10 +151,10 @@ export default function InvestmentCalculator() {
             min={1000}
             max={500000}
             step={1000}
-            dir={isAr ? "rtl" : "ltr"}
+            dir="ltr"
             className="w-full cursor-pointer [&_[data-slot=slider-track]]:h-1 [&_[data-slot=slider-track]]:bg-muted [&_[data-slot=slider-range]]:bg-primary [&_[data-slot=slider-thumb]]:size-4 [&_[data-slot=slider-thumb]]:border [&_[data-slot=slider-thumb]]:border-primary [&_[data-slot=slider-thumb]]:bg-background [&_[data-slot=slider-thumb]]:shadow-md"
           />
-          <div className="flex justify-between text-[10px] font-bold text-muted-foreground">
+          <div className="flex justify-between text-[10px] font-bold text-muted-foreground" dir="ltr">
             <span>{isAr ? "١,٠٠٠" : "1,000"}</span>
             <span>{isAr ? "٥٠٠,٠٠٠" : "500,000"}</span>
           </div>
@@ -196,10 +196,10 @@ export default function InvestmentCalculator() {
             min={1}
             max={60}
             step={1}
-            dir={isAr ? "rtl" : "ltr"}
+            dir="ltr"
             className="w-full cursor-pointer [&_[data-slot=slider-track]]:h-1 [&_[data-slot=slider-track]]:bg-muted [&_[data-slot=slider-range]]:bg-primary [&_[data-slot=slider-thumb]]:size-4 [&_[data-slot=slider-thumb]]:border [&_[data-slot=slider-thumb]]:border-primary [&_[data-slot=slider-thumb]]:bg-background [&_[data-slot=slider-thumb]]:shadow-md"
           />
-          <div className="flex justify-between text-[10px] font-bold text-muted-foreground">
+          <div className="flex justify-between text-[10px] font-bold text-muted-foreground" dir="ltr">
             <span>{isAr ? "شهر واحد" : "1 month"}</span>
             <span>{isAr ? "60 شهر (5 سنوات)" : "60 months (5 years)"}</span>
           </div>
