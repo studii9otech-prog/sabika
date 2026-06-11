@@ -73,10 +73,6 @@ export default function Footer() {
                 <span className="font-medium">{t("address")}</span>
               </div>
               <div className="border-t border-white/[0.04] pt-2.5 space-y-2">
-                <div>
-                  <span className="text-[10px] text-zinc-500 block">{t("developedBy")}</span>
-                  <span className="font-semibold text-zinc-300 block">Mo Hassan</span>
-                </div>
                 {/* Social Icons */}
                 <div className="flex items-center gap-2">
                   <a
