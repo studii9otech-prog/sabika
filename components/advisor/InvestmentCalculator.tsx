@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Slider } from "@/components/ui/slider";
 import { useActivePrices } from "@/hooks/useLivePrice";
 import { TrendingUp, Coins, Landmark, Activity, Award, Minus, Plus } from "lucide-react";
@@ -17,6 +17,33 @@ export default function InvestmentCalculator() {
   const tKarats = useTranslations("karats");
   const locale = useLocale();
   const isAr = locale === "ar";
+
+  const [inputValue, setInputValue] = useState("10000");
+
+  useEffect(() => {
+    setInputValue(amount.toString());
+  }, [amount]);
+
+  const handleInputChange = (val: string) => {
+    const cleanVal = val.replace(/\D/g, "");
+    setInputValue(cleanVal);
+    
+    const parsed = parseInt(cleanVal, 10);
+    if (!isNaN(parsed)) {
+      setAmount(parsed);
+    }
+  };
+
+  const handleInputBlur = () => {
+    let parsed = parseInt(inputValue, 10);
+    if (isNaN(parsed) || parsed < 1000) {
+      parsed = 1000;
+    } else if (parsed > 500000) {
+      parsed = 500000;
+    }
+    setAmount(parsed);
+    setInputValue(parsed.toString());
+  };
 
   const price21 = data?.prices?.karat21?.gramPriceEGP ?? 4200;
   const grams = amount / price21;
@@ -89,9 +116,22 @@ export default function InvestmentCalculator() {
               >
                 <Minus className="w-3 h-3" />
               </button>
-              <span className="font-price font-black text-primary text-base min-w-[90px] text-center bg-primary/5 border border-primary/10 px-2.5 py-0.5 rounded-lg">
-                {amount.toLocaleString(isAr ? "ar-EG" : "en-US")} {tCommon((activeCurrency || "EGP").toLowerCase() as any)}
-              </span>
+              
+              <div className="flex items-center gap-1 bg-primary/5 border border-primary/10 px-2.5 py-0.5 rounded-lg">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={inputValue}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  onBlur={handleInputBlur}
+                  className="font-price font-black text-primary text-base w-[65px] text-center bg-transparent border-none outline-none focus:ring-0 p-0"
+                />
+                <span className="text-[11px] font-bold text-primary/70 select-none">
+                  {tCommon((activeCurrency || "EGP").toLowerCase() as any)}
+                </span>
+              </div>
+
               <button 
                 type="button"
                 onClick={() => handleAmountChange(amount + 5000)}
@@ -111,11 +151,12 @@ export default function InvestmentCalculator() {
             min={1000}
             max={500000}
             step={1000}
+            dir={isAr ? "rtl" : "ltr"}
             className="w-full cursor-pointer [&_[data-slot=slider-track]]:h-1 [&_[data-slot=slider-track]]:bg-muted [&_[data-slot=slider-range]]:bg-primary [&_[data-slot=slider-thumb]]:size-4 [&_[data-slot=slider-thumb]]:border [&_[data-slot=slider-thumb]]:border-primary [&_[data-slot=slider-thumb]]:bg-background [&_[data-slot=slider-thumb]]:shadow-md"
           />
           <div className="flex justify-between text-[10px] font-bold text-muted-foreground">
-            <span>1,000</span>
-            <span>500,000</span>
+            <span>{isAr ? "١,٠٠٠" : "1,000"}</span>
+            <span>{isAr ? "٥٠٠,٠٠٠" : "500,000"}</span>
           </div>
         </div>
 
@@ -155,11 +196,12 @@ export default function InvestmentCalculator() {
             min={1}
             max={60}
             step={1}
+            dir={isAr ? "rtl" : "ltr"}
             className="w-full cursor-pointer [&_[data-slot=slider-track]]:h-1 [&_[data-slot=slider-track]]:bg-muted [&_[data-slot=slider-range]]:bg-primary [&_[data-slot=slider-thumb]]:size-4 [&_[data-slot=slider-thumb]]:border [&_[data-slot=slider-thumb]]:border-primary [&_[data-slot=slider-thumb]]:bg-background [&_[data-slot=slider-thumb]]:shadow-md"
           />
           <div className="flex justify-between text-[10px] font-bold text-muted-foreground">
-            <span>1 m</span>
-            <span>60 m (5 yrs)</span>
+            <span>{isAr ? "شهر واحد" : "1 month"}</span>
+            <span>{isAr ? "60 شهر (5 سنوات)" : "60 months (5 years)"}</span>
           </div>
         </div>
       </div>
