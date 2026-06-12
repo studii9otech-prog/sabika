@@ -89,7 +89,7 @@ export default function PriceChart() {
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="text-start">
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
             {t("title")}
@@ -100,12 +100,12 @@ export default function PriceChart() {
         </div>
 
         {/* Period selector */}
-        <div className="flex items-center gap-0.5 bg-muted/60 rounded-xl p-1 flex-shrink-0">
+        <div className="grid grid-cols-6 sm:flex items-center gap-0.5 bg-muted/60 rounded-xl p-1 w-full sm:w-auto">
           {PERIODS.map((key) => (
             <button
               key={key}
               onClick={() => setPeriod(key)}
-              className={`px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-150 cursor-pointer ${
+              className={`px-1 py-1.5 sm:px-2.5 sm:py-1.5 text-[10px] sm:text-xs font-bold rounded-lg transition-all duration-150 text-center whitespace-nowrap cursor-pointer ${
                 period === key
                   ? "bg-card text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"

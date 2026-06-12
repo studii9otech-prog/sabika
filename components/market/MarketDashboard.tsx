@@ -163,42 +163,42 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
     <div dir={isAr ? "rtl" : "ltr"} className="text-start font-sans max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 pb-20">
       
       {/* ── Tabs Navigation ─────────────────────────────────────── */}
-      <div className="flex justify-center sm:justify-start items-center border-b border-border/40 pb-px mb-6 overflow-x-auto whitespace-nowrap">
-        <div className="flex gap-2 p-1 bg-muted/50 rounded-2xl border border-border/30">
+      <div className="border-b border-border/40 pb-px mb-6 w-full">
+        <div className="grid grid-cols-3 sm:flex gap-1 p-1 bg-muted/50 rounded-2xl border border-border/30 w-full sm:w-auto">
           <button
             onClick={() => setActiveTab("watch")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-5 py-2.5 rounded-xl text-[10px] sm:text-xs md:text-sm font-bold transition-all duration-200 cursor-pointer ${
               activeTab === "watch"
                 ? "bg-card text-foreground shadow-sm border border-border/50"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <LineChart className="w-4 h-4 text-primary" />
-            {t("tabWatch")}
+            <LineChart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
+            <span className="whitespace-nowrap">{t("tabWatch")}</span>
           </button>
           
           <button
             onClick={() => setActiveTab("trade")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-5 py-2.5 rounded-xl text-[10px] sm:text-xs md:text-sm font-bold transition-all duration-200 cursor-pointer ${
               activeTab === "trade"
                 ? "bg-card text-foreground shadow-sm border border-border/50"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Calculator className="w-4 h-4 text-primary" />
-            {t("tabTrade")}
+            <Calculator className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
+            <span className="whitespace-nowrap">{t("tabTrade")}</span>
           </button>
 
           <button
             onClick={() => setActiveTab("pro")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-5 py-2.5 rounded-xl text-[10px] sm:text-xs md:text-sm font-bold transition-all duration-200 cursor-pointer ${
               activeTab === "pro"
                 ? "bg-card text-foreground shadow-sm border border-border/50"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Briefcase className="w-4 h-4 text-primary" />
-            {t("tabPro")}
+            <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
+            <span className="whitespace-nowrap">{t("tabPro")}</span>
           </button>
         </div>
       </div>
@@ -425,7 +425,7 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
                         className="w-full accent-primary cursor-pointer h-1.5 bg-muted rounded-lg appearance-none"
                       />
                     </div>
-                    <div className="flex gap-2 mt-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
                       {[
                         { val: 60, lbl: t("presetCoin") },
                         { val: 120, lbl: t("presetJewelry") },
@@ -435,7 +435,7 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
                         <button
                           key={preset.val}
                           onClick={() => setMakerFee(preset.val)}
-                          className={`flex-1 py-1 text-[9px] font-bold rounded-lg border cursor-pointer transition-all ${
+                          className={`py-1 text-[9px] font-bold rounded-lg border cursor-pointer transition-all ${
                             makerFee === preset.val
                               ? "bg-primary/10 border-primary text-primary"
                               : "bg-muted/30 border-border/40 text-muted-foreground hover:text-foreground"
@@ -553,12 +553,12 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
                       +
                     </button>
                   </div>
-                  <div className="flex gap-2 mt-2">
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-2">
                     {([1000, 3000, 5000, 10000, 20000] as const).map((a) => (
                       <button
                         key={a}
                         onClick={() => setDcaAmount(a)}
-                        className="flex-1 py-1 text-[10px] font-bold rounded-lg bg-muted/30 border border-border/40 text-muted-foreground hover:text-foreground cursor-pointer"
+                        className="py-1 text-[10px] font-bold rounded-lg bg-muted/30 border border-border/40 text-muted-foreground hover:text-foreground cursor-pointer"
                       >
                         {fmtLocal(a)} {currencyLabel}
                       </button>

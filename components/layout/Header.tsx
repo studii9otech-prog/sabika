@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { Menu } from "lucide-react";
+import { Menu, Coins, LineChart, Brain, Globe } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import LanguageToggle from "@/components/common/LanguageToggle";
 import ThemeToggle from "@/components/common/ThemeToggle";
@@ -97,23 +97,60 @@ export default function Header() {
               </SheetTrigger>
               <SheetContent
                 side={locale === "ar" ? "right" : "left"}
-                className="w-72 rounded-l-2xl border-l border-border/60 bg-background"
+                className={`w-72 bg-background/95 header-blur backdrop-blur-xl border-border/40 shadow-2xl p-0 ${
+                  locale === "ar"
+                    ? "rounded-l-3xl border-l"
+                    : "rounded-r-3xl border-r"
+                }`}
               >
-                <div className="flex flex-col gap-1.5 pt-8">
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.key}
-                      href={localePath(link.href)}
-                      onClick={() => setMobileOpen(false)}
-                      className={`px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
-                        isActive(link.href)
-                          ? "bg-foreground text-background shadow-sm"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                      }`}
-                    >
-                      {t(link.key)}
-                    </Link>
-                  ))}
+                <div className="flex flex-col h-full pt-6">
+                  {/* Brand Header */}
+                  <div className="px-6 pb-6 mb-4 border-b border-border/20 text-start">
+                    <img
+                      src="/assets/images/logo.svg"
+                      alt="Sabika"
+                      className="h-[28px] w-auto object-contain transition-all duration-300 dark:hidden"
+                    />
+                    <img
+                      src="/assets/images/logo_footer.svg"
+                      alt="Sabika"
+                      className="h-[28px] w-auto object-contain transition-all duration-300 hidden dark:block"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-2 font-medium">
+                      {locale === "ar" ? "رفيقك الاستثماري في عالم الذهب" : "Your Gold Investment Companion"}
+                    </p>
+                  </div>
+
+                  {/* Nav Links */}
+                  <nav className="flex flex-col gap-1 px-3">
+                    {navLinks.map((link) => {
+                      const active = isActive(link.href);
+                      const Icon =
+                        link.key === "prices"
+                          ? Coins
+                          : link.key === "analytics"
+                          ? LineChart
+                          : link.key === "advisor"
+                          ? Brain
+                          : Globe;
+
+                      return (
+                        <Link
+                          key={link.key}
+                          href={localePath(link.href)}
+                          onClick={() => setMobileOpen(false)}
+                          className={`flex items-center gap-3 px-4 py-3.5 text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-xl ${
+                            active
+                              ? "bg-primary/10 text-primary"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                          }`}
+                        >
+                          <Icon className={`w-4 h-4 flex-shrink-0 ${active ? "text-primary" : "text-muted-foreground/80"}`} />
+                          <span>{t(link.key)}</span>
+                        </Link>
+                      );
+                    })}
+                  </nav>
                 </div>
               </SheetContent>
             </Sheet>

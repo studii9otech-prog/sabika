@@ -112,7 +112,7 @@ export default function PriceCard({
       </div>
 
       {/* Price */}
-      <p className="text-2xl font-black tabular-nums text-foreground tracking-tight mb-1 font-price">
+      <p className="text-2xl font-black tabular-nums text-foreground tracking-tight mb-1 font-price whitespace-nowrap">
         {priceEGP?.toLocaleString(locale === "ar" ? "ar-EG" : "en-US") ?? "—"}
         <span className="text-xs font-medium text-muted-foreground mr-1 ml-1">
           {tCommon(activeCurrency.toLowerCase() as any)}/{tCommon("gram")}
