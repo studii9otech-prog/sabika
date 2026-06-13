@@ -30,7 +30,12 @@ export async function GET(request: Request) {
 
   try {
     // 2. Fetch live price data from the internal Gold Price API
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    let baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (!baseUrl) {
+      const host = request.headers.get("host") || "sabika-gold.vercel.app";
+      const protocol = host.includes("localhost") ? "http" : "https";
+      baseUrl = `${protocol}://${host}`;
+    }
     const res = await fetch(`${baseUrl}/api/prices/gold`, {
       cache: "no-store",
     });
