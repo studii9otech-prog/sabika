@@ -10,6 +10,15 @@ import { useActivePrices, useOuncePrice } from "@/hooks/useLivePrice";
 import { formatPriceChange, formatChange, getSecondsSince } from "@/lib/utils/format";
 import { generateMockHistory } from "@/lib/calculations/goldPrice";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 
 const KARATS = ["21", "18", "24", "14", "12"] as const;
 type PricesKey = "karat12" | "karat14" | "karat18" | "karat21" | "karat24";
@@ -27,6 +36,32 @@ function smoothPath(points: { x: number; y: number }[]): string {
   return d;
 }
 
+function HeroCustomTooltip({ active, payload, label, locale, tCommon, activeCurrency }: {
+  active?: boolean;
+  payload?: { value: number }[];
+  label?: string;
+  locale: string;
+  tCommon: any;
+  activeCurrency: string;
+}) {
+  if (!active || !payload?.length) return null;
+  const isThreeDecimals = ["kwd", "bhd", "omr", "jod"].includes((activeCurrency || "EGP").toLowerCase());
+  const isEgp = (activeCurrency || "EGP").toLowerCase() === "egp";
+  const decimalPlaces = isThreeDecimals ? 3 : (isEgp ? 0 : 2);
+  
+  return (
+    <div className="rounded-xl border border-border/60 bg-card/90 backdrop-blur-md px-3 py-2 shadow-lg text-xs text-start">
+      <p className="text-muted-foreground font-medium mb-0.5">{label}</p>
+      <p className="font-price font-bold text-foreground">
+        {payload[0].value.toLocaleString(locale === "ar" ? "ar-EG" : "en-US", {
+          minimumFractionDigits: decimalPlaces,
+          maximumFractionDigits: decimalPlaces,
+        })} {tCommon((activeCurrency || "EGP").toLowerCase() as any)}
+      </p>
+    </div>
+  );
+}
+
 export default function HeroPrice() {
   const { ounceUSD: liveOunceUSD } = useOuncePrice();
   const t = useTranslations("hero");
@@ -35,9 +70,6 @@ export default function HeroPrice() {
   const [selectedKarat, setSelectedKarat] = useState<string>("21");
   const [secondsAgo, setSecondsAgo] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const lineRef = useRef<SVGPathElement>(null);
-  const fillRef = useRef<SVGPathElement>(null);
-  const prevKarat = useRef(selectedKarat);
 
   /* ─── Entrance animation ─────────────────────────────────── */
   useEffect(() => {
@@ -48,41 +80,6 @@ export default function HeroPrice() {
       { y: 0, opacity: 1, duration: 0.6, stagger: 0.08, ease: "power3.out", delay: 0.05 }
     );
   }, [isLoading]);
-
-  /* ─── Chart draw animation on karat switch ──────────────── */
-  useEffect(() => {
-    if (!lineRef.current) return;
-    if (prevKarat.current !== selectedKarat) {
-      // Fade out → update → draw in
-      gsap.to([lineRef.current, fillRef.current], {
-        opacity: 0, duration: 0.15, ease: "power1.in",
-        onComplete: () => {
-          // Draw in
-          const len = lineRef.current?.getTotalLength?.() ?? 400;
-          if (lineRef.current) {
-            lineRef.current.style.strokeDasharray = String(len);
-            lineRef.current.style.strokeDashoffset = String(len);
-          }
-          gsap.to([lineRef.current, fillRef.current], { opacity: 1, duration: 0 });
-          gsap.to(lineRef.current, {
-            strokeDashoffset: 0,
-            duration: 1.0,
-            ease: "power2.inOut",
-          });
-          gsap.fromTo(fillRef.current, { opacity: 0 }, { opacity: 1, duration: 0.9, delay: 0.1 });
-        }
-      });
-      prevKarat.current = selectedKarat;
-    } else {
-      // First load draw
-      const len = lineRef.current?.getTotalLength?.() ?? 400;
-      lineRef.current.style.strokeDasharray = String(len);
-      lineRef.current.style.strokeDashoffset = String(len);
-      gsap.to(lineRef.current, { strokeDashoffset: 0, duration: 1.4, ease: "power2.inOut", delay: 0.3 });
-      gsap.fromTo(fillRef.current, { opacity: 0 }, { opacity: 1, duration: 1.2, delay: 0.4 });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedKarat, isLoading]);
 
   /* ─── Live seconds counter ───────────────────────────────── */
   useEffect(() => {
@@ -109,32 +106,35 @@ export default function HeroPrice() {
   const locale     = t("liveLabel") === "مباشر" ? "ar" : "en";
   const isAr       = locale === "ar";
 
-  /* ─── Sparkline geometry ─────────────────────────────────── */
-  const spark = useMemo(() => {
-    if (!priceData) return null;
-    const raw = generateMockHistory(priceData.gramPriceEGP, 28, 0.007).map(d => d.price);
-    const W = 500, H = 80;
-    const padT = 6, padB = 4;
-    const minV = Math.min(...raw);
-    const maxV = Math.max(...raw);
-    const rng  = maxV - minV || 1;
-    const pts  = raw.map((v, i) => ({
-      x: (i / (raw.length - 1)) * W,
-      y: padT + ((maxV - v) / rng) * (H - padT - padB),
-    }));
-    const line = smoothPath(pts);
-    const last = pts[pts.length - 1];
-    const firstY = pts[0].y;
-    // Close fill down to bottom baseline
-    const fill = `${line} L ${W} ${H} L 0 ${H} Z`;
-    return { line, fill, last, W, H, firstY };
-  }, [priceData]);
+  /* ─── Sparkline data (24 hourly ticks for daily view) ─────── */
+  const chartData = useMemo(() => {
+    if (!priceData) return [];
+    
+    // Generate 24 hourly points using the deterministic generator
+    const raw = generateMockHistory(priceData.gramPriceEGP, 24, 0.005);
+    
+    return raw.map((point, i) => {
+      const hour = 24 - i;
+      const label = hour === 0 
+        ? (isAr ? "الآن" : "Now") 
+        : (isAr ? `منذ ${hour} س` : `${hour}h ago`);
+      
+      return {
+        name: label,
+        price: point.price,
+      };
+    });
+  }, [priceData, isAr]);
+
+  const pricesList = chartData.map(d => d.price);
+  const chartMin = pricesList.length ? Math.min(...pricesList) : (priceData?.gramPriceEGP ?? 0) * 0.995;
+  const chartMax = pricesList.length ? Math.max(...pricesList) : (priceData?.gramPriceEGP ?? 0) * 1.005;
 
   /* ─── Trend color ────────────────────────────────────────── */
   const trendColor = isUp ? "#10B981" : isDown ? "#EF4444" : "#B8960C";
 
   /* ─── Loading skeleton ───────────────────────────────────── */
-  if (isLoading || !priceData || !data || !spark) {
+  if (isLoading || !priceData || !data || !chartData.length) {
     return (
       <div className="px-6 pt-10 pb-4 max-w-2xl mx-auto space-y-6">
         {/* karat tabs */}
@@ -237,76 +237,57 @@ export default function HeroPrice() {
         </span>
       </div>
 
-      {/* ── Sparkline ──────────────────────────────────────────────── */}
-      <div className="g-fade w-full mb-6" style={{ marginLeft: '-4px', marginRight: '-4px', width: 'calc(100% + 8px)' }}>
-        <svg
-          viewBox={`0 0 ${spark.W} ${spark.H}`}
-          preserveAspectRatio="none"
-          className="w-full block"
-          style={{ height: "120px" }}
-          aria-hidden="true"
-        >
-          <defs>
-            <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stopColor={trendColor} stopOpacity="0.22" className="transition-all duration-700" />
-              <stop offset="75%"  stopColor={trendColor} stopOpacity="0.05" className="transition-all duration-700" />
-              <stop offset="100%" stopColor={trendColor} stopOpacity="0"    className="transition-all duration-700" />
-            </linearGradient>
-            <filter id="lineGlow" x="-5%" y="-15%" width="110%" height="140%">
-              <feDropShadow dx="0" dy="5" stdDeviation="3.5" floodColor={trendColor} floodOpacity="0.25" className="transition-all duration-700" />
-            </filter>
-          </defs>
-
-          {/* Gradient fill area */}
-          <path
-            ref={fillRef}
-            d={spark.fill}
-            fill="url(#heroGrad)"
-            className="transition-all duration-700 ease-out"
-            style={{
-              transition: "d 0.8s cubic-bezier(0.4, 0, 0.2, 1), fill 0.8s ease",
-            }}
-          />
-
-          {/* Main line */}
-          <path
-            ref={lineRef}
-            d={spark.line}
-            fill="none"
-            stroke={trendColor}
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            filter="url(#lineGlow)"
-            className="transition-all duration-700 ease-out"
-            style={{
-              transition: "d 0.8s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.8s ease",
-            }}
-          />
-
-          {/* Live endpoint dot */}
-          <circle 
-            cx={spark.last.x} 
-            cy={spark.last.y} 
-            r="4" 
-            fill={trendColor} 
-            className="transition-all duration-700"
-            style={{ transition: "cx 0.8s cubic-bezier(0.4, 0, 0.2, 1), cy 0.8s cubic-bezier(0.4, 0, 0.2, 1), fill 0.8s ease" }}
-          />
-          <circle
-            cx={spark.last.x}
-            cy={spark.last.y}
-            r="8"
-            fill={trendColor}
-            opacity="0.18"
-            className="animate-ping transition-all duration-700"
-            style={{ 
-              transformOrigin: `${spark.last.x}px ${spark.last.y}px`, 
-              animationDuration: '2s',
-              transition: "cx 0.8s cubic-bezier(0.4, 0, 0.2, 1), cy 0.8s cubic-bezier(0.4, 0, 0.2, 1), fill 0.8s ease"
-            }}
-          />
-        </svg>
+      {/* ── Recharts AreaChart ───────────────────────────────────── */}
+      <div className="g-fade w-full h-[140px] mb-6 select-none" style={{ marginLeft: '-4px', marginRight: '-4px', width: 'calc(100% + 8px)' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{ top: 10, right: isAr ? 48 : 4, left: isAr ? 4 : 48, bottom: 5 }}>
+            <defs>
+              <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"   stopColor={trendColor} stopOpacity="0.20" />
+                <stop offset="100%" stopColor={trendColor} stopOpacity="0.00" />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="2 4"
+              stroke="var(--border)"
+              strokeOpacity={0.4}
+              vertical={false}
+            />
+            <XAxis
+              dataKey="name"
+              tick={{ fontSize: 9, fill: "var(--muted-foreground)" }}
+              axisLine={false}
+              tickLine={false}
+              interval="preserveStartEnd"
+              hide={false}
+            />
+            <YAxis
+              domain={[chartMin - 2, chartMax + 2]}
+              tick={{ fontSize: 9, fill: "var(--muted-foreground)" }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) => Math.round(v).toLocaleString(isAr ? "ar-EG" : "en-US")}
+              width={44}
+              orientation={isAr ? "right" : "left"}
+              hide={false}
+            />
+            <RechartsTooltip
+              content={<HeroCustomTooltip locale={locale} tCommon={tCommon} activeCurrency={activeCurrency} />}
+              cursor={{ stroke: trendColor, strokeWidth: 1, strokeDasharray: "3 3" }}
+            />
+            <Area
+              type="monotone"
+              dataKey="price"
+              stroke={trendColor}
+              strokeWidth={3}
+              fill="url(#heroGrad)"
+              dot={false}
+              activeDot={{ r: 4, fill: trendColor, stroke: "var(--card)", strokeWidth: 2 }}
+              animationDuration={800}
+              animationEasing="ease-in-out"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
 
       {/* ── Footer Stats ───────────────────────────────────────────── */}
@@ -315,13 +296,13 @@ export default function HeroPrice() {
           <span>
             {isAr ? "أعلى" : "H"}{" · "}
             <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-              {Math.round(priceData.gramPriceEGP * 1.003).toLocaleString(isAr ? "ar-EG" : "en-US")}
+              {Math.round(chartMax).toLocaleString(isAr ? "ar-EG" : "en-US")}
             </span>
           </span>
           <span>
             {isAr ? "أدنى" : "L"}{" · "}
             <span className="text-red-500 dark:text-red-400 font-bold">
-              {Math.round(priceData.gramPriceEGP * 0.997).toLocaleString(isAr ? "ar-EG" : "en-US")}
+              {Math.round(chartMin).toLocaleString(isAr ? "ar-EG" : "en-US")}
             </span>
           </span>
           {/* Live ounce USD spot price — updates every second */}
