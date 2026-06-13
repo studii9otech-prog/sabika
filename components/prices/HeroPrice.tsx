@@ -240,7 +240,7 @@ export default function HeroPrice() {
       {/* ── Recharts AreaChart ───────────────────────────────────── */}
       <div className="g-fade w-full h-[140px] mb-6 select-none" style={{ marginLeft: '-4px', marginRight: '-4px', width: 'calc(100% + 8px)' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 10, right: isAr ? 48 : 4, left: isAr ? 4 : 48, bottom: 5 }}>
+          <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%"   stopColor={trendColor} stopOpacity="0.20" />
@@ -255,21 +255,12 @@ export default function HeroPrice() {
             />
             <XAxis
               dataKey="name"
-              tick={{ fontSize: 9, fill: "var(--muted-foreground)" }}
-              axisLine={false}
-              tickLine={false}
-              interval="preserveStartEnd"
-              hide={false}
+              hide={true}
+              padding={{ left: 2, right: 2 }}
             />
             <YAxis
               domain={[chartMin - 2, chartMax + 2]}
-              tick={{ fontSize: 9, fill: "var(--muted-foreground)" }}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(v) => Math.round(v).toLocaleString(isAr ? "ar-EG" : "en-US")}
-              width={44}
-              orientation={isAr ? "right" : "left"}
-              hide={false}
+              hide={true}
             />
             <RechartsTooltip
               content={<HeroCustomTooltip locale={locale} tCommon={tCommon} activeCurrency={activeCurrency} />}
