@@ -83,7 +83,7 @@ export default function HeroPrice() {
     // Generate 24 hourly points using the deterministic generator
     const raw = generateMockHistory(priceData.gramPriceEGP, 24, 0.005);
     
-    return raw.map((point, i) => {
+    const mapped = raw.map((point, i) => {
       const hour = 24 - i;
       const label = hour === 0 
         ? (isAr ? "الآن" : "Now") 
@@ -94,6 +94,7 @@ export default function HeroPrice() {
         price: point.price,
       };
     });
+    return mapped.reverse();
   }, [priceData, isAr]);
 
   const pricesList = chartData.map(d => d.price);

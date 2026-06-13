@@ -65,7 +65,7 @@ export default function HeroChart({
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart 
           data={chartData} 
-          margin={{ top: 10, right: isAr ? -44 : 0, left: isAr ? 0 : -44, bottom: 0 }}
+          margin={{ top: 10, right: 0, left: -44, bottom: 0 }}
           onMouseMove={(state) => {
             if (state?.activePayload?.[0]) {
               onHoverChange(
@@ -105,7 +105,7 @@ export default function HeroChart({
             tickLine={false}
             tickFormatter={(v) => Math.round(v).toLocaleString(isAr ? "ar-EG" : "en-US")}
             width={48}
-            orientation={isAr ? "right" : "left"}
+            orientation="left"
             hide={false}
           />
           <RechartsTooltip
