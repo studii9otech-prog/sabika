@@ -101,8 +101,10 @@ export async function GET(request: Request) {
 💵 <b>سعر دولار الصاغة:</b> ${saghaUSDVal ? saghaUSDVal.toFixed(2) : "—"} ج.م
 🌐 <b>الأونصة عالمياً:</b> ${prices.ounceUSD.toLocaleString("en-US")} $
 
-📈 لمتابعة التحليلات التفاعلية وتوقعات الذكاء الاصطناعي:
-🔗 <a href="${baseUrl}">موقع سبيكة الرسمي</a>
+🔗 <b>روابط المتابعة الرسمية:</b>
+🌐 <a href="${baseUrl}">موقع سبيكة الرسمي</a>
+📢 <a href="https://t.me/SabikaLivePrices">قناة التليجرام</a>
+🟢 <a href="https://whatsapp.com/channel/0029VbDoPswBVJkxJ9v7qs3c">قناة الواتساب</a>
 `;
 
     // 5. Post message to Telegram Channel via Bot API
