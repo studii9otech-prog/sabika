@@ -6,8 +6,7 @@ import { gsap } from "gsap";
 import { Skeleton } from "@/components/ui/skeleton";
 import NumberTicker from "@/components/common/NumberTicker";
 import OunceSpotTicker from "@/components/prices/OunceSpotTicker";
-import { useActivePrices } from "@/hooks/useLivePrice";
-import { useSettingsStore } from "@/store/settingsStore";
+import { useActivePrices, useOuncePrice } from "@/hooks/useLivePrice";
 import { formatPriceChange, formatChange, getSecondsSince } from "@/lib/utils/format";
 import { generateMockHistory } from "@/lib/calculations/goldPrice";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
@@ -29,9 +28,10 @@ function smoothPath(points: { x: number; y: number }[]): string {
 }
 
 export default function HeroPrice() {
+  const { ounceUSD: liveOunceUSD } = useOuncePrice();
   const t = useTranslations("hero");
   const tCommon = useTranslations("common");
-  const { data, isLoading, activeCurrency, activeUsdToLocal } = useActivePrices();
+  const { data, isLoading, activeCurrency } = useActivePrices();
   const [selectedKarat, setSelectedKarat] = useState<string>("21");
   const [secondsAgo, setSecondsAgo] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -93,8 +93,19 @@ export default function HeroPrice() {
 
   const karatKey   = `karat${selectedKarat}` as PricesKey;
   const priceData  = data?.prices?.[karatKey];
-  const isUp       = priceData?.direction === "up";
-  const isDown     = priceData?.direction === "down";
+
+  // Determine trend direction based on gold ounce USD spot price change
+  const trendDirection = useMemo(() => {
+    if (liveOunceUSD === null || !data?.prices?.ounceUSD) {
+      return priceData?.direction || "up";
+    }
+    if (liveOunceUSD > data.prices.ounceUSD) return "up";
+    if (liveOunceUSD < data.prices.ounceUSD) return "down";
+    return priceData?.direction || "up";
+  }, [liveOunceUSD, data?.prices?.ounceUSD, priceData?.direction]);
+
+  const isUp       = trendDirection === "up";
+  const isDown     = trendDirection === "down";
   const locale     = t("liveLabel") === "مباشر" ? "ar" : "en";
   const isAr       = locale === "ar";
 
@@ -237,10 +248,13 @@ export default function HeroPrice() {
         >
           <defs>
             <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stopColor={trendColor} stopOpacity="0.28" />
-              <stop offset="75%"  stopColor={trendColor} stopOpacity="0.08" />
-              <stop offset="100%" stopColor={trendColor} stopOpacity="0"    />
+              <stop offset="0%"   stopColor={trendColor} stopOpacity="0.22" className="transition-all duration-700" />
+              <stop offset="75%"  stopColor={trendColor} stopOpacity="0.05" className="transition-all duration-700" />
+              <stop offset="100%" stopColor={trendColor} stopOpacity="0"    className="transition-all duration-700" />
             </linearGradient>
+            <filter id="lineGlow" x="-5%" y="-15%" width="110%" height="140%">
+              <feDropShadow dx="0" dy="5" stdDeviation="3.5" floodColor={trendColor} floodOpacity="0.25" className="transition-all duration-700" />
+            </filter>
           </defs>
 
           {/* Gradient fill area */}
@@ -248,6 +262,10 @@ export default function HeroPrice() {
             ref={fillRef}
             d={spark.fill}
             fill="url(#heroGrad)"
+            className="transition-all duration-700 ease-out"
+            style={{
+              transition: "d 0.8s cubic-bezier(0.4, 0, 0.2, 1), fill 0.8s ease",
+            }}
           />
 
           {/* Main line */}
@@ -256,21 +274,37 @@ export default function HeroPrice() {
             d={spark.line}
             fill="none"
             stroke={trendColor}
-            strokeWidth="2.5"
+            strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
+            filter="url(#lineGlow)"
+            className="transition-all duration-700 ease-out"
+            style={{
+              transition: "d 0.8s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.8s ease",
+            }}
           />
 
           {/* Live endpoint dot */}
-          <circle cx={spark.last.x} cy={spark.last.y} r="4" fill={trendColor} />
+          <circle 
+            cx={spark.last.x} 
+            cy={spark.last.y} 
+            r="4" 
+            fill={trendColor} 
+            className="transition-all duration-700"
+            style={{ transition: "cx 0.8s cubic-bezier(0.4, 0, 0.2, 1), cy 0.8s cubic-bezier(0.4, 0, 0.2, 1), fill 0.8s ease" }}
+          />
           <circle
             cx={spark.last.x}
             cy={spark.last.y}
             r="8"
             fill={trendColor}
             opacity="0.18"
-            className="animate-ping"
-            style={{ transformOrigin: `${spark.last.x}px ${spark.last.y}px`, animationDuration: '2s' }}
+            className="animate-ping transition-all duration-700"
+            style={{ 
+              transformOrigin: `${spark.last.x}px ${spark.last.y}px`, 
+              animationDuration: '2s',
+              transition: "cx 0.8s cubic-bezier(0.4, 0, 0.2, 1), cy 0.8s cubic-bezier(0.4, 0, 0.2, 1), fill 0.8s ease"
+            }}
           />
         </svg>
       </div>

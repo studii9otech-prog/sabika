@@ -71,8 +71,17 @@ export function calculateAllKarats(
   return prices;
 }
 
+// Simple seedable pseudo-random generator
+function seedRandom(seed: number) {
+  let s = seed;
+  return function() {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+}
+
 /**
- * توليد بيانات تاريخية محاكاة (Mock) للرسوم البيانية
+ * توليد بيانات تاريخية محاكاة (Mock) للرسوم البيانية بشكل حتمي وثابت
  */
 export function generateMockHistory(
   currentPrice: number,
@@ -81,11 +90,14 @@ export function generateMockHistory(
 ): { timestamp: string; price: number }[] {
   const data: { timestamp: string; price: number }[] = [];
   let price = currentPrice * (1 - days * 0.001); // نبدأ من سعر أقل قليلاً
+  
+  // Seed the random generator using the currentPrice to ensure stable points
+  const random = seedRandom(Math.floor(currentPrice * 17) + days);
 
   for (let i = days; i >= 0; i--) {
     const date = new Date();
     date.setDate(date.getDate() - i);
-    const change = (Math.random() - 0.48) * volatility * price;
+    const change = (random() - 0.48) * volatility * price;
     price = Math.max(price + change, currentPrice * 0.7);
 
     data.push({
