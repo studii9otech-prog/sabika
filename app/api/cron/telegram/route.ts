@@ -51,7 +51,8 @@ export async function GET(request: Request) {
 
     const prices = data.prices;
     const usdToEGP = data.usdToEGP;
-    const saghaUSD = data.saghaUSD;
+    const saghaUSDVal = prices.saghaUSD || data.saghaUSD;
+    const bankUSDVal = prices.bankUSD || usdToEGP;
 
     // 3. Format date and time in Cairo timezone
     const dateStr = new Date().toLocaleDateString("ar-EG", {
@@ -71,24 +72,37 @@ export async function GET(request: Request) {
       return "➖";
     };
 
+    // Formatting rates for clean presentation without parenthesis BiDi issues
+    const p24 = Math.round(prices.karat24.gramPriceEGP).toLocaleString("ar-EG");
+    const p21 = Math.round(prices.karat21.gramPriceEGP).toLocaleString("ar-EG");
+    const p18 = Math.round(prices.karat18.gramPriceEGP).toLocaleString("ar-EG");
+    const p14 = Math.round(prices.karat14.gramPriceEGP).toLocaleString("ar-EG");
+
+    const change24 = `${prices.karat24.changePercent24h > 0 ? "+" : ""}${prices.karat24.changePercent24h}%`;
+    const change21 = `${prices.karat21.changePercent24h > 0 ? "+" : ""}${prices.karat21.changePercent24h}%`;
+    const change18 = `${prices.karat18.changePercent24h > 0 ? "+" : ""}${prices.karat18.changePercent24h}%`;
+    const change14 = `${prices.karat14.changePercent24h > 0 ? "+" : ""}${prices.karat14.changePercent24h}%`;
+
     // 4. Format the post text with HTML formatting
     const message = `
-🪙 <b>تحديث أسعار الذهب المباشرة - سبيكة</b>
-📅 ${dateStr}
+🪙 <b>أسعار الذهب المباشرة — سبيكة</b>
+📅 <b>التحديث:</b> ${dateStr}
 
-📊 <b>أسعار العيارات (ج.م / جرام):</b>
-• <b>عيار 24 (خالص):</b> ${Math.round(prices.karat24.gramPriceEGP).toLocaleString("ar-EG")} ج.م (${prices.karat24.changePercent24h > 0 ? "+" : ""}${prices.karat24.changePercent24h}% ${dirEmoji(prices.karat24.direction)})
-• <b>عيار 21 (شائع):</b> ${Math.round(prices.karat21.gramPriceEGP).toLocaleString("ar-EG")} ج.م (${prices.karat21.changePercent24h > 0 ? "+" : ""}${prices.karat21.changePercent24h}% ${dirEmoji(prices.karat21.direction)})
-• <b>عيار 18 (مشغولات):</b> ${Math.round(prices.karat18.gramPriceEGP).toLocaleString("ar-EG")} ج.م (${prices.karat18.changePercent24h > 0 ? "+" : ""}${prices.karat18.changePercent24h}% ${dirEmoji(prices.karat18.direction)})
-• <b>عيار 14:</b> ${Math.round(prices.karat14.gramPriceEGP).toLocaleString("ar-EG")} ج.م (${prices.karat14.changePercent24h > 0 ? "+" : ""}${prices.karat14.changePercent24h}% ${dirEmoji(prices.karat14.direction)})
+📊 <b>أسعار الذهب (جنيه مصري / جرام):</b>
+━━━━━━━━━━━━━━━━━━
+🥇 <b>عيار 24 :</b> ${p24} ج.م  |  ${dirEmoji(prices.karat24.direction)} ${change24}
+🥈 <b>عيار 21 :</b> ${p21} ج.م  |  ${dirEmoji(prices.karat21.direction)} ${change21}
+🥉 <b>عيار 18 :</b> ${p18} ج.م  |  ${dirEmoji(prices.karat18.direction)} ${change18}
+🎗️ <b>عيار 14 :</b> ${p14} ج.م  |  ${dirEmoji(prices.karat14.direction)} ${change14}
+━━━━━━━━━━━━━━━━━━
 
-📉 <b>مؤشرات الصاغة والسوق:</b>
-• 💵 <b>سعر دولار الصاغة:</b> ${saghaUSD ? saghaUSD.toFixed(2) : "—"} ج.م
-• 🏦 <b>سعر دولار البنك:</b> ${usdToEGP ? usdToEGP.toFixed(2) : "—"} ج.م
-• 🌐 <b>الأونصة عالمياً:</b> $${prices.ounceUSD.toLocaleString("en-US")}
+📉 <b>مؤشرات السوق والصاغة:</b>
+🏦 <b>سعر دولار البنك:</b> ${bankUSDVal ? bankUSDVal.toFixed(2) : "—"} ج.م
+💵 <b>سعر دولار الصاغة:</b> ${saghaUSDVal ? saghaUSDVal.toFixed(2) : "—"} ج.م
+🌐 <b>الأونصة عالمياً:</b> ${prices.ounceUSD.toLocaleString("en-US")} $
 
-📱 <i>لمتابعة الشارت والتحليلات الفنية اللحظية وتوقعات الذكاء الاصطناعي:</i>
-<a href="${baseUrl}">موقع سبيكة الرسمي</a>
+📈 لمتابعة التحليلات التفاعلية وتوقعات الذكاء الاصطناعي:
+🔗 <a href="${baseUrl}">موقع سبيكة الرسمي</a>
 `;
 
     // 5. Post message to Telegram Channel via Bot API
