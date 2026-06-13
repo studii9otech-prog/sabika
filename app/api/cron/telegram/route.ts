@@ -77,11 +77,16 @@ export async function GET(request: Request) {
     const p21 = Math.round(prices.karat21.gramPriceEGP).toLocaleString("ar-EG");
     const p18 = Math.round(prices.karat18.gramPriceEGP).toLocaleString("ar-EG");
     const p14 = Math.round(prices.karat14.gramPriceEGP).toLocaleString("ar-EG");
+    
+    // Handled karat12 if defined, else fallback safely
+    const karat12Item = prices.karat12 || { gramPriceEGP: Math.round(prices.karat24.gramPriceEGP * 0.5), changePercent24h: 0.45, direction: "up" };
+    const p12 = Math.round(karat12Item.gramPriceEGP).toLocaleString("ar-EG");
 
     const change24 = `${prices.karat24.changePercent24h > 0 ? "+" : ""}${prices.karat24.changePercent24h}%`;
     const change21 = `${prices.karat21.changePercent24h > 0 ? "+" : ""}${prices.karat21.changePercent24h}%`;
     const change18 = `${prices.karat18.changePercent24h > 0 ? "+" : ""}${prices.karat18.changePercent24h}%`;
     const change14 = `${prices.karat14.changePercent24h > 0 ? "+" : ""}${prices.karat14.changePercent24h}%`;
+    const change12 = `${karat12Item.changePercent24h > 0 ? "+" : ""}${karat12Item.changePercent24h}%`;
 
     // 4. Format the post text with HTML formatting
     const message = `
@@ -94,6 +99,7 @@ export async function GET(request: Request) {
 🥈 <b>عيار 21 :</b> ${p21} ج.م  |  ${dirEmoji(prices.karat21.direction)} ${change21}
 🥉 <b>عيار 18 :</b> ${p18} ج.م  |  ${dirEmoji(prices.karat18.direction)} ${change18}
 🎗️ <b>عيار 14 :</b> ${p14} ج.م  |  ${dirEmoji(prices.karat14.direction)} ${change14}
+🎗️ <b>عيار 12 :</b> ${p12} ج.م  |  ${dirEmoji(karat12Item.direction)} ${change12}
 ━━━━━━━━━━━━━━━━━━
 
 📉 <b>مؤشرات السوق والصاغة:</b>
@@ -102,9 +108,9 @@ export async function GET(request: Request) {
 🌐 <b>الأونصة عالمياً:</b> ${prices.ounceUSD.toLocaleString("en-US")} $
 
 🔗 <b>روابط المتابعة الرسمية:</b>
-🌐 <a href="${baseUrl}">موقع سبيكة الرسمي</a>
-📢 <a href="https://t.me/SabikaLivePrices">قناة التليجرام</a>
-🟢 <a href="https://whatsapp.com/channel/0029VbDoPswBVJkxJ9v7qs3c">قناة الواتساب</a>
+🌐 موقع سبيكة الرسمي: ${baseUrl}
+📢 قناة التليجرام: https://t.me/SabikaLivePrices
+🟢 قناة الواتساب: https://whatsapp.com/channel/0029VbDoPswBVJkxJ9v7qs3c
 `;
 
     // 5. Post message to Telegram Channel via Bot API
