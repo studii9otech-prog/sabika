@@ -1,51 +1,63 @@
 "use client";
 
 import { useState } from "react";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 import { usePriceHistory, useActivePrices } from "@/hooks/useLivePrice";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, Locale } from "@/lib/utils/format";
 import { useTranslations, useLocale } from "next-intl";
+import HistoryChart from "./HistoryChart";
 
 type Period = "1D" | "1W" | "1M" | "3M" | "1Y" | "5Y";
 const PERIODS: Period[] = ["1D", "1W", "1M", "3M", "1Y", "5Y"];
 
-function CustomTooltip({ active, payload, label, locale, tCommon, activeCurrency }: {
-  active?: boolean;
-  payload?: { value: number }[];
-  label?: string;
-  locale: string;
-  tCommon: any;
-  activeCurrency: string;
-}) {
-  if (!active || !payload?.length) return null;
-  const isThreeDecimals = ["kwd", "bhd", "omr", "jod"].includes((activeCurrency || "EGP").toLowerCase());
-  const isEgp = (activeCurrency || "EGP").toLowerCase() === "egp";
-  const decimalPlaces = isThreeDecimals ? 3 : (isEgp ? 0 : 2);
-  
-  return (
-    <div className="rounded-xl border border-border/60 bg-card px-3 py-2 shadow-lg text-xs text-start">
-      <p className="text-muted-foreground mb-0.5">{label}</p>
-      <p className="font-price font-bold text-foreground">
-        {payload[0].value.toLocaleString(locale === "ar" ? "ar-EG" : "en-US", {
-          minimumFractionDigits: decimalPlaces,
-          maximumFractionDigits: decimalPlaces,
-        })} {tCommon((activeCurrency || "EGP").toLowerCase() as any)}
-      </p>
-    </div>
-  );
-}
+const KARAT_INFO = {
+  "24": {
+    purityAr: "نقاء 99.9%",
+    purityEn: "99.9% Purity",
+    descAr: "الذهب الخالص عالي النقاء، يُسخدم بشكل أساسي في السبائك والجنيهات الذهبية للادخار والاستثمار لعدم تعرضه للتآكل بسهولة عند عدم خلطه بالمعادن.",
+    descEn: "Pure gold of high purity, mainly used in bullion bars and gold coins for savings and investment due to its high resistance to tarnishing when unalloyed.",
+    badgeAr: "خالص",
+    badgeEn: "Pure",
+  },
+  "21": {
+    purityAr: "نقاء 87.5%",
+    purityEn: "87.5% Purity",
+    descAr: "العيار الأكثر شعبية وطلباً في مصر والوطن العربي، يجمع بين البريق الذهبي الرائع والصلابة المناسبة لتصنيع المجوهرات اليومية.",
+    descEn: "The most popular and demanded karat in Egypt and the Arab world, combining a wonderful golden luster with suitable hardness for daily jewelry.",
+    badgeAr: "الأكثر شيوعاً",
+    badgeEn: "Most Popular",
+  },
+  "18": {
+    purityAr: "نقاء 75.0%",
+    purityEn: "75.0% Purity",
+    descAr: "يتميز بصلابة عالية ولمعان مميز، ويُعد الخيار المفضل لتصنيع المجوهرات المرصعة بالألماس والأحجار الكريمة والتصاميم العصرية الإيطالية.",
+    descEn: "Characterized by high hardness and distinct shine, it is the preferred choice for diamond-encrusted jewelry and modern Italian designs.",
+    badgeAr: "تصاميم عصرية",
+    badgeEn: "Modern Designs",
+  },
+  "14": {
+    purityAr: "نقاء 58.5%",
+    purityEn: "58.5% Purity",
+    descAr: "عيار اقتصادي يتمتع بصلابة ومقاومة عالية جداً للاحتكاك، ويُستخدم في تصنيع المجوهرات العملية اليومية الخفيفة وسهلة الاقتناء.",
+    descEn: "An economical karat with very high hardness and wear resistance, used for lightweight, practical daily jewelry that is easy to acquire.",
+    badgeAr: "اقتصادي",
+    badgeEn: "Economical",
+  },
+  "12": {
+    purityAr: "نقاء 50.0%",
+    purityEn: "50.0% Purity",
+    descAr: "يحتوي على نصف وزنه من الذهب النقي والنصف الآخر من المعادن المضافة، ويُعتبر خياراً اقتصادياً للغاية في الأسواق الغربية.",
+    descEn: "Contains half of its weight in pure gold and the other half in alloyed metals, representing a highly economical entry-level option.",
+    badgeAr: "اقتصادي للغاية",
+    badgeEn: "Entry Level",
+  }
+};
 
 export default function PriceChart() {
   const [period, setPeriod] = useState<Period>("1M");
+  const [selectedKarat, setSelectedKarat] = useState<string>("21");
+  const KARATS = ["21", "18", "24", "14", "12"] as const;
+
   const { data, isLoading } = usePriceHistory(period);
   const { activeCurrency, activeUsdToLocal, data: activeGoldData } = useActivePrices();
   const t = useTranslations("chart");
@@ -57,11 +69,12 @@ export default function PriceChart() {
 
   const usdToEGP = activeGoldData?.usdToEGP || 50;
   const conversionFactor = (activeUsdToLocal && usdToEGP) ? (activeUsdToLocal / usdToEGP) : 1;
+  const karatMultiplier = Number(selectedKarat) / 21;
 
   const chartData =
     data?.data?.map((point: { timestamp: string; price: number }) => ({
       date: formatDate(point.timestamp, locale as Locale),
-      price: point.price * conversionFactor,
+      price: point.price * conversionFactor * karatMultiplier,
     })) ?? [];
 
   const prices = chartData.map((d: { price: number }) => d.price);
@@ -89,13 +102,15 @@ export default function PriceChart() {
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
         <div className="text-start">
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
             {t("title")}
           </p>
           <p className="text-base font-bold text-foreground">
-            {t("sub")}
+            {isAr
+              ? `الذهب عيار ${selectedKarat} · ${tCommon(activeCurrency.toLowerCase() as any)} / جرام`
+              : `Gold ${selectedKarat}K · ${activeCurrency} / gram`}
           </p>
         </div>
 
@@ -117,52 +132,64 @@ export default function PriceChart() {
         </div>
       </div>
 
+      {/* Karat selector tabs & info */}
+      <div className="mb-6 border-b border-border/30 pb-4">
+        <div className="flex flex-wrap items-center gap-1 mb-3">
+          {KARATS.map((k) => {
+            const active = selectedKarat === k;
+            return (
+              <button
+                key={k}
+                onClick={() => setSelectedKarat(k)}
+                className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all duration-200 cursor-pointer ${
+                  active
+                    ? "text-zinc-900 dark:text-zinc-50 bg-zinc-100 dark:bg-zinc-800"
+                    : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300"
+                }`}
+              >
+                {isAr ? `عيار ${k}` : `${k}K`}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Karat info box */}
+        <div className="rounded-xl border border-zinc-150/40 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 p-3 text-xs text-start transition-all duration-300 flex items-start gap-2.5">
+          <div className="flex flex-col gap-1 w-full">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                {isAr ? `ذهب عيار ${selectedKarat}` : `Gold ${selectedKarat}K`}
+              </span>
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-primary/10 text-primary">
+                {isAr ? KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].purityAr : KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].purityEn}
+              </span>
+              {KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].badgeAr && (
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                  {isAr ? KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].badgeAr : KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].badgeEn}
+                </span>
+              )}
+            </div>
+            <p className="text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed text-[11px] sm:text-xs">
+              {isAr ? KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].descAr : KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].descEn}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Chart */}
       {isLoading || !chartData.length ? (
         <Skeleton className="h-56 w-full rounded-xl" />
       ) : (
         <div className="h-56">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="cgChart" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor={lineColor} stopOpacity={0.18} />
-                  <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="2 4"
-                stroke="var(--border)"
-                strokeOpacity={0.5}
-                vertical={false}
-              />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 10, fill: "var(--muted-foreground)", fontFamily: "var(--font-rubik), sans-serif" }}
-                axisLine={false}
-                tickLine={false}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                domain={[priceMin, priceMax]}
-                tick={{ fontSize: 10, fill: "var(--muted-foreground)", fontFamily: "var(--font-rubik), sans-serif" }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v) => formatPrice(v)}
-                width={74}
-              />
-              <Tooltip content={<CustomTooltip locale={locale} tCommon={tCommon} activeCurrency={activeCurrency} />} cursor={{ stroke: lineColor, strokeWidth: 1, strokeDasharray: "4 4" }} />
-              <Area
-                type="monotone"
-                dataKey="price"
-                stroke={lineColor}
-                strokeWidth={2}
-                fill="url(#cgChart)"
-                dot={false}
-                activeDot={{ r: 4, fill: lineColor, stroke: "var(--card)", strokeWidth: 2 }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <HistoryChart
+            chartData={chartData}
+            priceMin={priceMin}
+            priceMax={priceMax}
+            trendColor={lineColor}
+            isAr={isAr}
+            locale={locale}
+            activeCurrency={activeCurrency}
+          />
         </div>
       )}
 

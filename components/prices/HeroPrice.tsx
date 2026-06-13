@@ -15,6 +15,49 @@ import HeroChart from "@/components/charts/HeroChart";
 const KARATS = ["21", "18", "24", "14", "12"] as const;
 type PricesKey = "karat12" | "karat14" | "karat18" | "karat21" | "karat24";
 
+const KARAT_INFO = {
+  "24": {
+    purityAr: "نقاء 99.9%",
+    purityEn: "99.9% Purity",
+    descAr: "الذهب الخالص عالي النقاء، يُسخدم بشكل أساسي في السبائك والجنيهات الذهبية للادخار والاستثمار لعدم تعرضه للتآكل بسهولة عند عدم خلطه بالمعادن.",
+    descEn: "Pure gold of high purity, mainly used in bullion bars and gold coins for savings and investment due to its high resistance to tarnishing when unalloyed.",
+    badgeAr: "خالص",
+    badgeEn: "Pure",
+  },
+  "21": {
+    purityAr: "نقاء 87.5%",
+    purityEn: "87.5% Purity",
+    descAr: "العيار الأكثر شعبية وطلباً في مصر والوطن العربي، يجمع بين البريق الذهبي الرائع والصلابة المناسبة لتصنيع المجوهرات اليومية.",
+    descEn: "The most popular and demanded karat in Egypt and the Arab world, combining a wonderful golden luster with suitable hardness for daily jewelry.",
+    badgeAr: "الأكثر شيوعاً",
+    badgeEn: "Most Popular",
+  },
+  "18": {
+    purityAr: "نقاء 75.0%",
+    purityEn: "75.0% Purity",
+    descAr: "يتميز بصلابة عالية ولمعان مميز، ويُعد الخيار المفضل لتصنيع المجوهرات المرصعة بالألماس والأحجار الكريمة والتصاميم العصرية الإيطالية.",
+    descEn: "Characterized by high hardness and distinct shine, it is the preferred choice for diamond-encrusted jewelry and modern Italian designs.",
+    badgeAr: "تصاميم عصرية",
+    badgeEn: "Modern Designs",
+  },
+  "14": {
+    purityAr: "نقاء 58.5%",
+    purityEn: "58.5% Purity",
+    descAr: "عيار اقتصادي يتمتع بصلابة ومقاومة عالية جداً للاحتكاك، ويُستخدم في تصنيع المجوهرات العملية اليومية الخفيفة وسهلة الاقتناء.",
+    descEn: "An economical karat with very high hardness and wear resistance, used for lightweight, practical daily jewelry that is easy to acquire.",
+    badgeAr: "اقتصادي",
+    badgeEn: "Economical",
+  },
+  "12": {
+    purityAr: "نقاء 50.0%",
+    purityEn: "50.0% Purity",
+    descAr: "يحتوي على نصف وزنه من الذهب النقي والنصف الآخر من المعادن المضافة، ويُعتبر خياراً اقتصادياً للغاية في الأسواق الغربية.",
+    descEn: "Contains half of its weight in pure gold and the other half in alloyed metals, representing a highly economical entry-level option.",
+    badgeAr: "اقتصادي للغاية",
+    badgeEn: "Entry Level",
+  }
+};
+
 /** Convert an array of values to a smooth SVG cubic-bezier path */
 function smoothPath(points: { x: number; y: number }[]): string {
   if (points.length < 2) return "";
@@ -132,29 +175,53 @@ export default function HeroPrice() {
     <div ref={containerRef} className="px-6 pt-10 pb-6 max-w-2xl mx-auto">
 
       {/* ── Karat Tabs ─────────────────────────────────────────────── */}
-      <div className="g-fade flex items-center gap-1 mb-8">
-        {KARATS.map((k) => {
-          const active = selectedKarat === k;
-          return (
-            <button
-              key={k}
-              onClick={() => setSelectedKarat(k)}
-              className={[
-                "relative px-4 py-2 text-sm font-bold rounded-full transition-all duration-200 cursor-pointer",
-                active
-                  ? "text-zinc-900 dark:text-zinc-50 bg-zinc-100 dark:bg-zinc-800"
-                  : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300",
-              ].join(" ")}
-            >
-              {isAr ? `عيار ${k}` : `${k}K`}
-            </button>
-          );
-        })}
+      <div className="g-fade flex flex-col gap-3 mb-6">
+        <div className="flex items-center gap-1">
+          {KARATS.map((k) => {
+            const active = selectedKarat === k;
+            return (
+              <button
+                key={k}
+                onClick={() => setSelectedKarat(k)}
+                className={[
+                  "relative px-4 py-2 text-sm font-bold rounded-full transition-all duration-200 cursor-pointer",
+                  active
+                    ? "text-zinc-900 dark:text-zinc-50 bg-zinc-100 dark:bg-zinc-800"
+                    : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300",
+                ].join(" ")}
+              >
+                {isAr ? `عيار ${k}` : `${k}K`}
+              </button>
+            );
+          })}
 
-        {/* Live dot — pushed to end */}
-        <div className="ms-auto flex items-center gap-1.5 text-[11px] font-semibold text-zinc-400 dark:text-zinc-500">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          {isAr ? "مباشر" : "Live"}
+          {/* Live dot — pushed to end */}
+          <div className="ms-auto flex items-center gap-1.5 text-[11px] font-semibold text-zinc-400 dark:text-zinc-500">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            {isAr ? "مباشر" : "Live"}
+          </div>
+        </div>
+
+        {/* Karat info box */}
+        <div className="rounded-2xl border border-zinc-150/40 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 p-4 text-xs text-start transition-all duration-300 flex items-start gap-2.5">
+          <div className="flex flex-col gap-1 w-full">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                {isAr ? `ذهب عيار ${selectedKarat}` : `Gold ${selectedKarat}K`}
+              </span>
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                {isAr ? KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].purityAr : KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].purityEn}
+              </span>
+              {KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].badgeAr && (
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                  {isAr ? KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].badgeAr : KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].badgeEn}
+                </span>
+              )}
+            </div>
+            <p className="text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed text-[11px] sm:text-xs">
+              {isAr ? KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].descAr : KARAT_INFO[selectedKarat as keyof typeof KARAT_INFO].descEn}
+            </p>
+          </div>
         </div>
       </div>
 
