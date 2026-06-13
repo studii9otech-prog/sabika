@@ -61,18 +61,18 @@ export default function HeroPrice() {
   const karatKey   = `karat${selectedKarat}` as PricesKey;
   const priceData  = data?.prices?.[karatKey];
 
-  // Determine trend direction based on gold ounce USD spot price change
-  const trendDirection = useMemo(() => {
-    if (liveOunceUSD === null || !data?.prices?.ounceUSD) {
-      return priceData?.direction || "up";
-    }
+  // Determine daily trend direction based on the 24h price change
+  const isUp       = priceData ? priceData.change24h > 0 : true;
+  const isDown     = priceData ? priceData.change24h < 0 : false;
+  
+  // Live trend direction based on live gold ounce USD spot price updates
+  const liveDirection = useMemo(() => {
+    if (liveOunceUSD === null || !data?.prices?.ounceUSD) return "none";
     if (liveOunceUSD > data.prices.ounceUSD) return "up";
     if (liveOunceUSD < data.prices.ounceUSD) return "down";
-    return priceData?.direction || "up";
-  }, [liveOunceUSD, data?.prices?.ounceUSD, priceData?.direction]);
+    return "none";
+  }, [liveOunceUSD, data?.prices?.ounceUSD]);
 
-  const isUp       = trendDirection === "up";
-  const isDown     = trendDirection === "down";
   const locale     = t("liveLabel") === "مباشر" ? "ar" : "en";
   const isAr       = locale === "ar";
 
@@ -83,7 +83,7 @@ export default function HeroPrice() {
     // Generate 24 hourly points using the deterministic generator
     const raw = generateMockHistory(priceData.gramPriceEGP, 24, 0.005);
     
-    const mapped = raw.map((point, i) => {
+    return raw.map((point, i) => {
       const hour = 24 - i;
       const label = hour === 0 
         ? (isAr ? "الآن" : "Now") 
@@ -94,7 +94,6 @@ export default function HeroPrice() {
         price: point.price,
       };
     });
-    return mapped.reverse();
   }, [priceData, isAr]);
 
   const pricesList = chartData.map(d => d.price);
@@ -153,7 +152,7 @@ export default function HeroPrice() {
         })}
 
         {/* Live dot — pushed to end */}
-        <div className="mr-auto flex items-center gap-1.5 text-[11px] font-semibold text-zinc-400 dark:text-zinc-500">
+        <div className="ms-auto flex items-center gap-1.5 text-[11px] font-semibold text-zinc-400 dark:text-zinc-500">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           {isAr ? "مباشر" : "Live"}
         </div>
@@ -171,7 +170,7 @@ export default function HeroPrice() {
           locale={isAr ? "ar-EG" : "en-US"}
           decimals={isAr ? 0 : 0}
           className="text-[3.75rem] sm:text-[4.5rem] font-black tabular-nums leading-none tracking-tight text-zinc-900 dark:text-zinc-50 font-price"
-          flashColor={hoveredPrice !== null ? "none" : (isUp ? "up" : isDown ? "down" : "none")}
+          flashColor={hoveredPrice !== null ? "none" : liveDirection}
         />
       </div>
 

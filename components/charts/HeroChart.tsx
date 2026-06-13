@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   AreaChart,
@@ -20,6 +21,28 @@ interface HeroChartProps {
   locale: string;
   activeCurrency: string;
   onHoverChange: (price: number | null, label: string | null) => void;
+}
+
+/** Interpolates between Red (#EF4444), Amber (#F59E0B), and Green (#10B981) based on price position */
+function getColorForPrice(price: number, min: number, max: number): string {
+  if (max === min) return "#F59E0B";
+  const pct = Math.max(0, Math.min(1, (price - min) / (max - min)));
+  
+  let r, g, b;
+  if (pct < 0.5) {
+    // Interpolate between Red (pct=0) and Amber (pct=0.5)
+    const t = pct / 0.5;
+    r = Math.round(239 + (245 - 239) * t);
+    g = Math.round(68 + (158 - 68) * t);
+    b = Math.round(68 + (11 - 68) * t);
+  } else {
+    // Interpolate between Amber (pct=0.5) and Green (pct=1)
+    const t = (pct - 0.5) / 0.5;
+    r = Math.round(245 + (16 - 245) * t);
+    g = Math.round(158 + (185 - 158) * t);
+    b = Math.round(11 + (129 - 11) * t);
+  }
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
 function HeroCustomTooltip({ active, payload, label, locale, tCommon, activeCurrency }: {
@@ -48,6 +71,23 @@ function HeroCustomTooltip({ active, payload, label, locale, tCommon, activeCurr
   );
 }
 
+function CustomCursor({ points, customStroke }: any) {
+  if (!points || points.length < 2) return null;
+  const start = points[0];
+  const end = points[1];
+  return (
+    <line
+      x1={start.x}
+      y1={start.y}
+      x2={end.x}
+      y2={end.y}
+      stroke={customStroke}
+      strokeWidth={1}
+      strokeDasharray="4 4"
+    />
+  );
+}
+
 export default function HeroChart({
   chartData,
   chartMin,
@@ -59,29 +99,43 @@ export default function HeroChart({
   onHoverChange,
 }: HeroChartProps) {
   const tCommon = useTranslations("common");
+  const [hoveredPriceLocal, setHoveredPriceLocal] = useState<number | null>(null);
+
+  const hoveredColor = hoveredPriceLocal !== null
+    ? getColorForPrice(hoveredPriceLocal, chartMin, chartMax)
+    : null;
 
   return (
-    <div className="w-full h-[150px] mb-6 select-none" style={{ marginLeft: "-4px", marginRight: "-4px", width: "calc(100% + 8px)" }}>
+    <div dir="ltr" className="w-full h-[150px] mb-6 select-none" style={{ marginLeft: "-4px", marginRight: "-4px", width: "calc(100% + 8px)" }}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart 
           data={chartData} 
-          margin={{ top: 10, right: 0, left: -44, bottom: 0 }}
-          onMouseMove={(state) => {
+          margin={{ top: 10, right: isAr ? 0 : 8, left: isAr ? 8 : 0, bottom: 0 }}
+          onMouseMove={(state: any) => {
             if (state?.activePayload?.[0]) {
-              onHoverChange(
-                state.activePayload[0].payload.price,
-                state.activePayload[0].payload.name
-              );
+              const price = state.activePayload[0].payload.price;
+              const name = state.activePayload[0].payload.name;
+              setHoveredPriceLocal(price);
+              onHoverChange(price, name);
             }
           }}
           onMouseLeave={() => {
+            setHoveredPriceLocal(null);
             onHoverChange(null, null);
           }}
         >
           <defs>
+            {/* Multi-color gradient for the line stroke: High is green, Mid is amber, Low is red */}
+            <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stopColor="#10B981" />
+              <stop offset="50%"  stopColor="#F59E0B" />
+              <stop offset="100%" stopColor="#EF4444" />
+            </linearGradient>
+            {/* Fading gradient for the Area fill under the line */}
             <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%"   stopColor={trendColor} stopOpacity={0.18} />
-              <stop offset="95%" stopColor={trendColor} stopOpacity={0.00} />
+              <stop offset="5%"   stopColor="#10B981" stopOpacity={0.16} />
+              <stop offset="50%"  stopColor="#F59E0B" stopOpacity={0.08} />
+              <stop offset="95%"  stopColor="#EF4444" stopOpacity={0.00} />
             </linearGradient>
           </defs>
           <CartesianGrid
@@ -96,6 +150,7 @@ export default function HeroChart({
             axisLine={false}
             tickLine={false}
             interval="preserveStartEnd"
+            padding={{ left: 20, right: 20 }}
             hide={false}
           />
           <YAxis
@@ -104,22 +159,37 @@ export default function HeroChart({
             axisLine={false}
             tickLine={false}
             tickFormatter={(v) => Math.round(v).toLocaleString(isAr ? "ar-EG" : "en-US")}
-            width={48}
-            orientation="left"
+            width={40}
+            orientation={isAr ? "right" : "left"}
             hide={false}
           />
           <RechartsTooltip
             content={<HeroCustomTooltip locale={locale} tCommon={tCommon} activeCurrency={activeCurrency} />}
-            cursor={{ stroke: trendColor, strokeWidth: 1, strokeDasharray: "4 4" }}
+            cursor={<CustomCursor customStroke={hoveredColor || trendColor} />}
           />
           <Area
             type="monotone"
             dataKey="price"
-            stroke={trendColor}
+            stroke="url(#lineGrad)"
             strokeWidth={2}
             fill="url(#heroGrad)"
             dot={false}
-            activeDot={{ r: 4, fill: trendColor, stroke: "var(--card)", strokeWidth: 2 }}
+            activeDot={(props: any) => {
+              const { cx, cy, payload } = props;
+              if (cx === undefined || cy === undefined) return null;
+              const price = payload.price;
+              const dotColor = getColorForPrice(price, chartMin, chartMax);
+              return (
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={4}
+                  fill={dotColor}
+                  stroke="var(--card)"
+                  strokeWidth={2}
+                />
+              );
+            }}
             animationDuration={800}
             animationEasing="ease-in-out"
           />
