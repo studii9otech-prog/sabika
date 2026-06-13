@@ -69,6 +69,8 @@ export default function HeroPrice() {
   const { data, isLoading, activeCurrency } = useActivePrices();
   const [selectedKarat, setSelectedKarat] = useState<string>("21");
   const [secondsAgo, setSecondsAgo] = useState(0);
+  const [hoveredPrice, setHoveredPrice] = useState<number | null>(null);
+  const [hoveredLabel, setHoveredLabel] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   /* ─── Entrance animation ─────────────────────────────────── */
@@ -196,51 +198,72 @@ export default function HeroPrice() {
       {/* ── Big Price ──────────────────────────────────────────────── */}
       <div className="g-fade mb-3">
         <NumberTicker
-          value={priceData.gramPriceEGP}
+          value={hoveredPrice !== null ? hoveredPrice : priceData.gramPriceEGP}
           locale={isAr ? "ar-EG" : "en-US"}
           decimals={isAr ? 0 : 0}
           className="text-[3.75rem] sm:text-[4.5rem] font-black tabular-nums leading-none tracking-tight text-zinc-900 dark:text-zinc-50 font-price"
-          flashColor={isUp ? "up" : isDown ? "down" : "none"}
+          flashColor={hoveredPrice !== null ? "none" : (isUp ? "up" : isDown ? "down" : "none")}
         />
       </div>
 
       {/* ── Change Row ─────────────────────────────────────────────── */}
-      <div className="g-fade flex items-center gap-2.5 mb-8 flex-wrap">
-        <span
-          className="inline-flex items-center gap-1.5 text-sm font-bold"
-          style={{ color: trendColor }}
-        >
-          {isUp
-            ? <TrendingUp className="w-4 h-4" />
-            : isDown
-            ? <TrendingDown className="w-4 h-4" />
-            : <Minus className="w-4 h-4" />}
-          {formatPriceChange(priceData.change24h, locale)} {tCommon(activeCurrency.toLowerCase() as any)}
-        </span>
+      <div className="g-fade flex items-center gap-2.5 mb-8 flex-wrap h-8">
+        {hoveredPrice !== null ? (
+          <span className="text-sm font-bold text-zinc-500 dark:text-zinc-400 select-none animate-fade-in">
+            {isAr ? `السعر ${hoveredLabel}` : `Price ${hoveredLabel}`}
+          </span>
+        ) : (
+          <>
+            <span
+              className="inline-flex items-center gap-1.5 text-sm font-bold animate-fade-in"
+              style={{ color: trendColor }}
+            >
+              {isUp
+                ? <TrendingUp className="w-4 h-4" />
+                : isDown
+                ? <TrendingDown className="w-4 h-4" />
+                : <Minus className="w-4 h-4" />}
+              {formatPriceChange(priceData.change24h, locale)} {tCommon(activeCurrency.toLowerCase() as any)}
+            </span>
 
-        <span
-          className="text-sm font-bold px-2.5 py-0.5 rounded-lg"
-          style={{
-            color: trendColor,
-            background: isUp
-              ? "rgba(16,185,129,0.1)"
-              : isDown
-              ? "rgba(239,68,68,0.1)"
-              : "rgba(184,150,12,0.1)",
-          }}
-        >
-          {formatChange(priceData.changePercent24h, locale)}
-        </span>
+            <span
+              className="text-sm font-bold px-2.5 py-0.5 rounded-lg animate-fade-in"
+              style={{
+                color: trendColor,
+                background: isUp
+                  ? "rgba(16,185,129,0.1)"
+                  : isDown
+                  ? "rgba(239,68,68,0.1)"
+                  : "rgba(184,150,12,0.1)",
+              }}
+            >
+              {formatChange(priceData.changePercent24h, locale)}
+            </span>
 
-        <span className="text-xs text-zinc-400 dark:text-zinc-500 font-medium">
-          {isAr ? "منذ بداية اليوم" : "since market open"}
-        </span>
+            <span className="text-xs text-zinc-400 dark:text-zinc-500 font-medium animate-fade-in">
+              {isAr ? "منذ بداية اليوم" : "since market open"}
+            </span>
+          </>
+        )}
       </div>
 
       {/* ── Recharts AreaChart ───────────────────────────────────── */}
       <div className="g-fade w-full h-[140px] mb-6 select-none" style={{ marginLeft: '-4px', marginRight: '-4px', width: 'calc(100% + 8px)' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+          <AreaChart 
+            data={chartData} 
+            margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
+            onMouseMove={(state) => {
+              if (state?.activePayload?.[0]) {
+                setHoveredPrice(state.activePayload[0].payload.price);
+                setHoveredLabel(state.activePayload[0].payload.name);
+              }
+            }}
+            onMouseLeave={() => {
+              setHoveredPrice(null);
+              setHoveredLabel(null);
+            }}
+          >
             <defs>
               <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%"   stopColor={trendColor} stopOpacity="0.20" />
