@@ -9,6 +9,13 @@ export async function generateMetadata({ params }: PageProps) {
   return {
     title: `${t("title")} - ${locale === "ar" ? "سبيكة" : "Sabika"}`,
     description: t("subtitle"),
+    alternates: {
+      canonical: `https://sabika-app.com/${locale}/market`,
+      languages: {
+        ar: "https://sabika-app.com/ar/market",
+        en: "https://sabika-app.com/en/market",
+      },
+    },
   };
 }
 

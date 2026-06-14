@@ -4,6 +4,7 @@ import MetalCards from "@/components/prices/MetalCards";
 import PriceTable from "@/components/prices/PriceTable";
 import MarketPulseCardsClient from "../../components/prices/MarketPulseCards";
 import EgyptIndicators from "@/components/prices/EgyptIndicators";
+import FAQSection from "@/components/common/FAQSection";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getTranslations } from "next-intl/server";
@@ -53,6 +54,9 @@ export default async function HomePage({ params }: PageProps) {
           <SectionHeader label={t("otherMetalsTitle")} sub={t("otherMetalsSub")} />
           <MetalCards />
         </section>
+
+        {/* FAQ Section */}
+        <FAQSection />
 
       </div>
     </div>

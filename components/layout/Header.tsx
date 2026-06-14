@@ -14,6 +14,7 @@ const navLinks = [
   { key: "analytics", href: "/analytics" },
   { key: "advisor", href: "/advisor" },
   { key: "market", href: "/market" },
+  { key: "contact", href: "/contact" },
 ];
 
 export default function Header() {

@@ -16,6 +16,7 @@ export default function Footer() {
     { key: "analytics", href: "/analytics" },
     { key: "advisor", href: "/advisor" },
     { key: "market", href: "/market" },
+    { key: "contact", href: "/contact" },
   ];
 
   return (
@@ -29,7 +30,7 @@ export default function Footer() {
           
           {/* Column 1: Brand & Socials (Span 4) */}
           <div className="md:col-span-4 space-y-5">
-            <Link href={locale === "/" ? `/${locale}` : `/${locale}`} className="inline-block group">
+            <Link href={`/${locale}`} className="inline-block group">
               <img
                 src="/assets/images/logo_footer.svg"
                 alt="Sabika"

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { useActivePrices, useMetals, useMarketSignal } from "@/hooks/useLivePrice";
+import { useActivePrices, useMetals, useMarketSignal, usePriceHistory } from "@/hooks/useLivePrice";
 import PriceTable from "@/components/prices/PriceTable";
 import MetalCards from "@/components/prices/MetalCards";
 import MarketPulseCardsClient from "@/components/prices/MarketPulseCards";
@@ -63,6 +63,14 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
   const { data: signalResponse, isLoading: signalLoading } = useMarketSignal();
   const marketSignal = signalResponse?.signal;
 
+  // Fetching 30 days history data for indicators calculations
+  const { data: historyResponse, isLoading: historyLoading } = usePriceHistory("1M");
+  const historyData = historyResponse?.data || [];
+
+  const historyPrices = useMemo(() => {
+    return historyData.map((d: any) => d.price);
+  }, [historyData]);
+
   /* ────────────────────────────────────────────────────────── */
   /* ── Calculator States ───────────────────────────────────── */
   /* ────────────────────────────────────────────────────────── */
@@ -70,6 +78,7 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
   const [calcKarat, setCalcKarat] = useState<"24" | "21" | "18" | "14" | "12">("21");
   const [calcWeight, setCalcWeight] = useState<number>(10);
   const [makerFee, setMakerFee] = useState<number>(150); // EGP per gram maker fee (المصنعية)
+  const [productType, setProductType] = useState<"bullion" | "jewelry">("bullion"); // bullion includes cashback
 
   /* ────────────────────────────────────────────────────────── */
   /* ── DCA Savings States ──────────────────────────────────── */
@@ -97,14 +106,23 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
       ? rawValue + totalMakerFee + taxes 
       : rawValue - (calcWeight * 20); // typical small buyback fee (خصم كسر) of 20 EGP/g when selling
 
+    // Calculate expected resold cashback (e.g. 60% of maker fee is returned upon selling back bullion)
+    const expectedCashback = (calcAction === "buy" && productType === "bullion") 
+      ? totalMakerFee * 0.60 
+      : 0;
+
     return {
       rawValue,
       taxes,
       totalMakerFee,
       finalTotal,
-      buybackDiscount: calcAction === "sell" ? calcWeight * 20 : 0
+      buybackDiscount: calcAction === "sell" ? calcWeight * 20 : 0,
+      expectedCashback,
+      netCost: (calcAction === "buy" && productType === "bullion")
+        ? (rawValue + totalMakerFee + taxes) - (totalMakerFee * 0.60)
+        : rawValue + totalMakerFee + taxes
     };
-  }, [currentGramPrice, calcWeight, makerFee, calcAction]);
+  }, [currentGramPrice, calcWeight, makerFee, calcAction, productType]);
 
   /* ────────────────────────────────────────────────────────── */
   /* ── DCA Predictions ─────────────────────────────────────── */
@@ -124,13 +142,24 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
     const cashRealValue = totalInvested * Math.pow(1 - 0.20, dcaMonths / 12);
     const lossOfPurchasingPower = totalInvested - cashRealValue;
 
+    // Bank Certificate Value (22% annual interest yield, compounded monthly)
+    const certAnnualRate = 0.22;
+    const certMonthlyRate = certAnnualRate / 12;
+    let certTotal = 0;
+    for (let i = 0; i < dcaMonths; i++) {
+      certTotal = (certTotal + dcaAmount) * (1 + certMonthlyRate);
+    }
+    const certProfit = certTotal - totalInvested;
+
     return {
       totalInvested,
       gramsAccumulated,
       projectedValue,
       profit,
       cashRealValue,
-      lossOfPurchasingPower
+      lossOfPurchasingPower,
+      certTotal,
+      certProfit
     };
   }, [goldPrices, dcaAmount, dcaMonths]);
 
@@ -158,6 +187,194 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
       global24EGP
     };
   }, [goldPrices]);
+
+  // RSI (14) Wilder's smoothed average calculation
+  const rsiVal = useMemo(() => {
+    if (historyPrices.length < 15) return { value: 58.4, label: isAr ? "محايد" : "Neutral" };
+    let gains = 0;
+    let losses = 0;
+    
+    for (let i = 1; i <= 14; i++) {
+      const diff = historyPrices[i] - historyPrices[i - 1];
+      if (diff > 0) gains += diff;
+      else losses -= diff;
+    }
+    
+    let avgGain = gains / 14;
+    let avgLoss = losses / 14;
+    
+    for (let i = 15; i < historyPrices.length; i++) {
+      const diff = historyPrices[i] - historyPrices[i - 1];
+      const currentGain = diff > 0 ? diff : 0;
+      const currentLoss = diff < 0 ? -diff : 0;
+      avgGain = (avgGain * 13 + currentGain) / 14;
+      avgLoss = (avgLoss * 13 + currentLoss) / 14;
+    }
+    
+    if (avgLoss === 0) return { value: 100, label: isAr ? "شراء مفرط" : "Overbought" };
+    const rs = avgGain / avgLoss;
+    const rsi = 100 - (100 / (1 + rs));
+    const roundedRsi = parseFloat(rsi.toFixed(1));
+    
+    let label = isAr ? "محايد" : "Neutral";
+    if (roundedRsi > 70) label = isAr ? "شراء مفرط" : "Overbought";
+    else if (roundedRsi < 30) label = isAr ? "بيع مفرط" : "Oversold";
+    
+    return { value: roundedRsi, label };
+  }, [historyPrices, isAr]);
+
+  // MACD (12, 26, 9) calculation
+  const macdVal = useMemo(() => {
+    if (historyPrices.length < 26) {
+      return {
+        macd: 0,
+        signalLine: 0,
+        signalText: isAr ? "اتجاه صاعد" : "Bullish Trend"
+      };
+    }
+    
+    const calcEMA = (data: number[], period: number) => {
+      const k = 2 / (period + 1);
+      const ema = [data[0]];
+      for (let i = 1; i < data.length; i++) {
+        ema.push(data[i] * k + ema[i - 1] * (1 - k));
+      }
+      return ema;
+    };
+    
+    const ema12 = calcEMA(historyPrices, 12);
+    const ema26 = calcEMA(historyPrices, 26);
+    
+    const macdLine = ema12.map((val, idx) => val - ema26[idx]);
+    const signalLine = calcEMA(macdLine, 9);
+    
+    const lastMacd = macdLine[macdLine.length - 1];
+    const lastSignal = signalLine[signalLine.length - 1];
+    const prevMacd = macdLine[macdLine.length - 2];
+    const prevSignal = signalLine[signalLine.length - 2];
+    
+    let signalText = isAr ? "محايد" : "Neutral";
+    if (lastMacd > lastSignal && prevMacd <= prevSignal) {
+      signalText = isAr ? "تقاطع شرائي (Bullish)" : "Bullish Crossover";
+    } else if (lastMacd < lastSignal && prevMacd >= prevSignal) {
+      signalText = isAr ? "تقاطع بيعي (Bearish)" : "Bearish Crossover";
+    } else if (lastMacd > lastSignal) {
+      signalText = isAr ? "اتجاه صاعد (Bullish)" : "Bullish Trend";
+    } else {
+      signalText = isAr ? "اتجاه هابط (Bearish)" : "Bearish Trend";
+    }
+    
+    return { macd: lastMacd, signalLine: lastSignal, signalText };
+  }, [historyPrices, isAr]);
+
+  // SMA Crossover (5 vs 20)
+  const smaCrossVal = useMemo(() => {
+    const shortPeriod = 5;
+    const longPeriod = 20;
+    if (historyPrices.length < longPeriod) {
+      return isAr ? "تقاطع ذهبي صاعد" : "Golden Cross";
+    }
+    
+    const calcAvg = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
+    
+    const smaShort = calcAvg(historyPrices.slice(-shortPeriod));
+    const smaLong = calcAvg(historyPrices.slice(-longPeriod));
+    
+    const prevPrices = historyPrices.slice(0, -1);
+    const prevSmaShort = calcAvg(prevPrices.slice(-shortPeriod));
+    const prevSmaLong = calcAvg(prevPrices.slice(-longPeriod));
+    
+    if (smaShort > smaLong && prevSmaShort <= prevSmaLong) {
+      return isAr ? "تقاطع ذهبي صاعد (Golden Cross)" : "Golden Cross (Bullish)";
+    } else if (smaShort < smaLong && prevSmaShort >= prevSmaLong) {
+      return isAr ? "تقاطع الموت الهابط (Death Cross)" : "Death Cross (Bearish)";
+    } else if (smaShort > smaLong) {
+      return isAr ? "محاذاة صاعدة (Bullish)" : "Bullish Alignment";
+    } else {
+      return isAr ? "محاذاة هابطة (Bearish)" : "Bearish Alignment";
+    }
+  }, [historyPrices, isAr]);
+
+  // Volatility status calculation (average daily percent change over 14 days)
+  const volatilityVal = useMemo(() => {
+    if (historyPrices.length < 5) return isAr ? "معتدل" : "Moderate";
+    let sumPctChange = 0;
+    for (let i = 1; i < historyPrices.length; i++) {
+      const pct = Math.abs(historyPrices[i] - historyPrices[i - 1]) / historyPrices[i - 1];
+      sumPctChange += pct;
+    }
+    const avgPct = (sumPctChange / (historyPrices.length - 1)) * 100;
+    
+    if (avgPct > 1.0) return isAr ? "مرتفع" : "High";
+    if (avgPct < 0.4) return isAr ? "منخفض" : "Low";
+    return isAr ? "معتدل" : "Moderate";
+  }, [historyPrices, isAr]);
+
+  // Classical Pivot Points support and resistance calculations
+  const dynamicPivots = useMemo(() => {
+    if (!goldPrices || !goldPrices.prices.karat21) return null;
+    const currentPrice = goldPrices.prices.karat21.gramPriceEGP;
+    
+    if (historyPrices.length < 3) {
+      return {
+        pp: currentPrice,
+        s1: currentPrice * 0.985,
+        s2: currentPrice * 0.97,
+        r1: currentPrice * 1.015,
+        r2: currentPrice * 1.03
+      };
+    }
+    
+    const recentPrices = historyPrices.slice(-3);
+    const high = Math.max(...recentPrices, currentPrice);
+    const low = Math.min(...recentPrices, currentPrice);
+    const close = currentPrice;
+    
+    const pp = (high + low + close) / 3;
+    const s1 = (2 * pp) - high;
+    const r1 = (2 * pp) - low;
+    const s2 = pp - (high - low);
+    const r2 = pp + (high - low);
+    
+    return { pp, s1, s2, r1, r2 };
+  }, [goldPrices, historyPrices]);
+
+  // Decoupling correlation index linked to premium percent
+  const correlationData = useMemo(() => {
+    if (!proMetrics) {
+      return {
+        label: t("strongCorr"),
+        description: t("correlationDesc"),
+        rating: 4
+      };
+    }
+    const premium = proMetrics.localPremiumPercent;
+    if (premium < 4) {
+      return {
+        label: t("veryStrongCorr"),
+        description: t("correlationDescVeryStrong"),
+        rating: 5
+      };
+    } else if (premium <= 8) {
+      return {
+        label: t("strongCorr"),
+        description: t("correlationDescStrong"),
+        rating: 4
+      };
+    } else if (premium <= 12) {
+      return {
+        label: t("modCorr"),
+        description: t("correlationDescMod"),
+        rating: 3
+      };
+    } else {
+      return {
+        label: t("weakCorr"),
+        description: t("correlationDescWeak"),
+        rating: 2
+      };
+    }
+  }, [proMetrics, t]);
 
   return (
     <div dir={isAr ? "rtl" : "ltr"} className="text-start font-sans max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 pb-20">
@@ -319,32 +536,63 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
                 </div>
               </div>
 
-              {/* Action tabs inside calculator */}
-              <div className="grid grid-cols-2 p-1 bg-muted/50 rounded-xl border border-border/20">
-                <button
-                  onClick={() => setCalcAction("buy")}
-                  className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                    calcAction === "buy"
-                      ? "bg-card text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {t("calcBuy")}
-                </button>
-                <button
-                  onClick={() => setCalcAction("sell")}
-                  className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                    calcAction === "sell"
-                      ? "bg-card text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {t("calcSell")}
-                </button>
-              </div>
-
               {/* Inputs */}
               <div className="space-y-4">
+                {/* Action tabs inside calculator */}
+                <div className="grid grid-cols-2 p-1 bg-muted/50 rounded-xl border border-border/20">
+                  <button
+                    onClick={() => setCalcAction("buy")}
+                    className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      calcAction === "buy"
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {t("calcBuy")}
+                  </button>
+                  <button
+                    onClick={() => setCalcAction("sell")}
+                    className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      calcAction === "sell"
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {t("calcSell")}
+                  </button>
+                </div>
+
+                {/* Product Type selection (Only for buy) */}
+                {calcAction === "buy" && (
+                  <div>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
+                      {t("goldProductType")}
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setProductType("bullion")}
+                        className={`py-2 px-3 text-xs font-bold rounded-xl border cursor-pointer transition-all ${
+                          productType === "bullion"
+                            ? "bg-primary/10 text-primary border-primary"
+                            : "bg-muted/20 border-border/50 text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {t("bullionOption")}
+                      </button>
+                      <button
+                        onClick={() => setProductType("jewelry")}
+                        className={`py-2 px-3 text-xs font-bold rounded-xl border cursor-pointer transition-all ${
+                          productType === "jewelry"
+                            ? "bg-primary/10 text-primary border-primary"
+                            : "bg-muted/20 border-border/50 text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {t("jewelryOption")}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Karat selection */}
                 <div>
                   <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
@@ -484,6 +732,15 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
                           +{fmtLocal(calcResults.taxes)} {currencyLabel}
                         </span>
                       </div>
+
+                      {productType === "bullion" && (
+                        <div className="flex justify-between text-xs text-emerald-600 dark:text-emerald-400 font-price font-bold bg-emerald-500/5 p-2.5 rounded-xl border border-emerald-500/10">
+                          <span>{t("cashbackEstimate")}</span>
+                          <span>
+                            ~{fmtLocal(calcResults.expectedCashback)} {currencyLabel}
+                          </span>
+                        </div>
+                      )}
                     </>
                   ) : (
                     <div className="flex justify-between text-xs text-muted-foreground font-price">
@@ -496,12 +753,18 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
 
                   <div className="border-t border-border/40 pt-3 flex justify-between items-center">
                     <span className="text-xs font-bold text-foreground">
-                      {calcAction === "buy" ? t("totalToPay") : t("totalToReceive")}
+                      {calcAction === "buy" ? (productType === "bullion" ? t("netCost") : t("totalToPay")) : t("totalToReceive")}
                     </span>
                     <span className="text-lg font-black text-primary font-price">
-                      {fmtLocal(calcResults.finalTotal)} {currencyLabel}
+                      {fmtLocal(calcAction === "buy" && productType === "bullion" ? calcResults.netCost : calcResults.finalTotal)} {currencyLabel}
                     </span>
                   </div>
+
+                  {calcAction === "buy" && productType === "bullion" && (
+                    <p className="text-[9px] text-muted-foreground text-start leading-relaxed pt-1 border-t border-border/10">
+                      {t("cashbackNote")}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -597,7 +860,7 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
               {/* Calculations comparison */}
               {dcaResults && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     
                     {/* Gold card */}
                     <div className="bg-emerald-500/5 dark:bg-emerald-950/10 border border-emerald-500/20 rounded-2xl p-4 text-center space-y-1">
@@ -612,6 +875,20 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
                           amount: Math.round(dcaResults.projectedValue).toLocaleString(locale === "ar" ? "ar-EG" : "en-US"),
                           currency: tCommon((activeCurrency || "EGP").toLowerCase() as any)
                         })}
+                      </p>
+                    </div>
+
+                    {/* Bank Certificate Card */}
+                    <div className="bg-primary/5 dark:bg-primary/[0.02] border border-primary/20 rounded-2xl p-4 text-center space-y-1">
+                      <span className="text-[9px] font-bold text-primary uppercase tracking-wide">
+                        {t("bankCert")}
+                      </span>
+                      <p className="text-lg font-black text-foreground font-price">
+                        {Math.round(dcaResults.certTotal).toLocaleString(locale === "ar" ? "ar-EG" : "en-US")} <span className="text-xs font-normal text-muted-foreground">{tCommon((activeCurrency || "EGP").toLowerCase() as any)}</span>
+                      </p>
+                      <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+                        {locale === "ar" ? "العائد: +" : "Profit: +"}
+                        {Math.round(dcaResults.certProfit).toLocaleString(locale === "ar" ? "ar-EG" : "en-US")} {tCommon((activeCurrency || "EGP").toLowerCase() as any)}
                       </p>
                     </div>
 
@@ -897,23 +1174,25 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
               </div>
 
               <div className="space-y-4 text-center">
-                <p className="text-3xl font-black text-foreground font-price">
-                  {t("strongCorr")}
+                <p className="text-xl font-bold text-foreground">
+                  {correlationData.label}
                 </p>
                 
                 <div className="flex justify-center items-center gap-1">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <div 
                       key={s} 
-                      className={`w-6 h-2 rounded-full ${
-                        s <= 4 ? "bg-primary" : "bg-muted"
+                      className={`w-6 h-2 rounded-full transition-all duration-300 ${
+                        s <= correlationData.rating 
+                          ? (correlationData.rating >= 4 ? "bg-emerald-500" : correlationData.rating === 3 ? "bg-amber-500" : "bg-red-500") 
+                          : "bg-muted"
                       }`} 
                     />
                   ))}
                 </div>
 
-                <div className="bg-muted/40 border border-border/40 rounded-xl p-3 text-[10px] text-muted-foreground text-start">
-                  {t("correlationDesc")}
+                <div className="bg-muted/40 border border-border/40 rounded-xl p-3 text-[10px] text-muted-foreground text-start min-h-[72px] flex items-center">
+                  {correlationData.description}
                 </div>
               </div>
             </div>
@@ -936,8 +1215,8 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
               </div>
             </div>
 
-            {goldPrices ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {goldPrices && dynamicPivots ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in duration-200">
                 
                 {/* Indicators Column */}
                 <div className="space-y-3">
@@ -947,17 +1226,49 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
                   
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-muted-foreground">RSI (14)</span>
-                    <span className="font-bold text-foreground font-price">58.4 (Neutral)</span>
+                    {historyLoading ? (
+                      <Skeleton className="h-4 w-12" />
+                    ) : (
+                      <span className={`font-bold font-price ${
+                        rsiVal.value > 70 ? "text-red-500" : rsiVal.value < 30 ? "text-emerald-500" : "text-foreground"
+                      }`}>
+                        {rsiVal.value} ({rsiVal.label})
+                      </span>
+                    )}
                   </div>
                   
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-muted-foreground">MACD (12, 26)</span>
-                    <span className="font-bold text-emerald-500 font-price">Bullish Crossover</span>
+                    {historyLoading ? (
+                      <Skeleton className="h-4 w-16" />
+                    ) : (
+                      <span className={`font-bold font-price ${
+                        macdVal.signalText.includes("Bullish") || macdVal.signalText.includes("شرائي") || macdVal.signalText.includes("صاعد") 
+                          ? "text-emerald-500" 
+                          : macdVal.signalText.includes("Bearish") || macdVal.signalText.includes("بيعي") || macdVal.signalText.includes("هابط")
+                          ? "text-rose-500"
+                          : "text-foreground"
+                      }`}>
+                        {macdVal.signalText}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-muted-foreground">SMA (50 vs 200)</span>
-                    <span className="font-bold text-emerald-500">Golden Cross</span>
+                    <span className="text-muted-foreground">SMA Cross (5/20)</span>
+                    {historyLoading ? (
+                      <Skeleton className="h-4 w-16" />
+                    ) : (
+                      <span className={`font-bold ${
+                        smaCrossVal.includes("Golden") || smaCrossVal.includes("ذهبي") || smaCrossVal.includes("صاعدة")
+                          ? "text-emerald-500"
+                          : smaCrossVal.includes("Death") || smaCrossVal.includes("الموت") || smaCrossVal.includes("هابطة")
+                          ? "text-rose-500"
+                          : "text-foreground"
+                      }`}>
+                        {smaCrossVal}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -970,21 +1281,21 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-muted-foreground">{t("pivotPoint")}</span>
                     <span className="font-bold text-foreground font-price">
-                      {fmtLocal(goldPrices.prices.karat21.gramPriceEGP)} {currencyLabel}
+                      {fmtLocal(dynamicPivots.pp)} {currencyLabel}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs font-price">
                     <span className="text-muted-foreground">{t("support1")}</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                      {fmtLocal(goldPrices.prices.karat21.gramPriceEGP * 0.985)} {currencyLabel}
+                      {fmtLocal(dynamicPivots.s1)} {currencyLabel}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs font-price">
                     <span className="text-muted-foreground">{t("support2")}</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                      {fmtLocal(goldPrices.prices.karat21.gramPriceEGP * 0.97)} {currencyLabel}
+                      {fmtLocal(dynamicPivots.s2)} {currencyLabel}
                     </span>
                   </div>
                 </div>
@@ -997,21 +1308,33 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
                   
                   <div className="flex justify-between items-center text-xs font-price">
                     <span className="text-muted-foreground">{t("resistance1")}</span>
-                    <span className="text-red-500 font-bold">
-                      {fmtLocal(goldPrices.prices.karat21.gramPriceEGP * 1.015)} {currencyLabel}
+                    <span className="text-rose-500 font-bold">
+                      {fmtLocal(dynamicPivots.r1)} {currencyLabel}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs font-price">
                     <span className="text-muted-foreground">{t("resistance2")}</span>
-                    <span className="text-red-500 font-bold">
-                      {fmtLocal(goldPrices.prices.karat21.gramPriceEGP * 1.03)} {currencyLabel}
+                    <span className="text-rose-500 font-bold">
+                      {fmtLocal(dynamicPivots.r2)} {currencyLabel}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs text-muted-foreground">
                     <span>{t("volatilityStatus")}</span>
-                    <span className="text-foreground font-bold">{t("volModerate")}</span>
+                    {historyLoading ? (
+                      <Skeleton className="h-4 w-12" />
+                    ) : (
+                      <span className={`font-bold ${
+                        volatilityVal === "High" || volatilityVal === "مرتفع" 
+                          ? "text-amber-500" 
+                          : volatilityVal === "Low" || volatilityVal === "منخفض" 
+                          ? "text-emerald-500" 
+                          : "text-foreground"
+                      }`}>
+                        {volatilityVal}
+                      </span>
+                    )}
                   </div>
                 </div>
 

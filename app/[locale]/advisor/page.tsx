@@ -20,6 +20,13 @@ export async function generateMetadata({ params }: PageProps) {
   return {
     title: `${t("title")} - ${locale === "ar" ? "سبيكة" : "Sabika"}`,
     description: t("subtitle"),
+    alternates: {
+      canonical: `https://sabika-app.com/${locale}/advisor`,
+      languages: {
+        ar: "https://sabika-app.com/ar/advisor",
+        en: "https://sabika-app.com/en/advisor",
+      },
+    },
   };
 }
 
