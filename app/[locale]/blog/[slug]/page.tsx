@@ -57,32 +57,20 @@ export default async function ArticlePage({ params }: PageProps) {
   return (
     <div className="min-h-screen">
       
-      {/* ── Breadcrumb & Back navigation ─────────────────────── */}
-      <div className="border-b border-border/40 bg-muted/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between text-xs">
-          <Link
-            href={`/${locale}/blog`}
-            className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors cursor-pointer font-bold"
-          >
-            {isAr ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-            <span>{t("backToBlog")}</span>
-          </Link>
-          
-          <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
-            <span>{locale === "ar" ? "الرئيسية" : "Home"}</span>
-            <span>/</span>
-            <span>{t("title")}</span>
-            <span>/</span>
-            <span className="text-foreground font-bold line-clamp-1 max-w-[150px] sm:max-w-xs">
-              {isAr ? article.title.ar : article.title.en}
-            </span>
-          </div>
-        </div>
-      </div>
+
 
       {/* ── Article Cover & Title Banner ─────────────────────── */}
       <div className="glassy-grid border-b border-border/40 py-10 sm:py-16 text-start">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          
+          {/* Back button inside Hero */}
+          <Link
+            href={`/${locale}/blog`}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors cursor-pointer mb-2"
+          >
+            {isAr ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            <span>{t("backToBlog")}</span>
+          </Link>
           
           {/* Category Badge & Metadata */}
           <div className="flex flex-wrap items-center gap-3">
@@ -139,6 +127,15 @@ export default async function ArticlePage({ params }: PageProps) {
           
           {/* Main content body */}
           <article className="lg:col-span-8 space-y-6">
+            
+            {/* Cover Image */}
+            <div className="relative h-60 sm:h-[380px] w-full overflow-hidden rounded-2xl border border-border/40 mb-8 bg-muted/20">
+              <img
+                src={article.coverImage}
+                alt={isAr ? article.title.ar : article.title.en}
+                className="w-full h-full object-cover"
+              />
+            </div>
             {contentBlocks.map((block, idx) => {
               switch (block.type) {
                 case "heading":

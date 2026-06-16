@@ -9,6 +9,7 @@ export interface ContentBlock {
 export interface Article {
   slug: string;
   category: "market" | "guide" | "news";
+  coverImage: string;
   readTime: number; // in minutes
   publishedAt: string; // ISO date string or formatted date
   author: {
@@ -29,12 +30,13 @@ export const ARTICLES: Article[] = [
   {
     slug: "fed-rates-gold",
     category: "market",
+    coverImage: "/assets/images/blog/fed-rates-gold.png",
     readTime: 6,
     publishedAt: "2026-06-15",
     author: {
-      name: { ar: "د. مصطفى الشامي", en: "Dr. Mostafa El-Shamy" },
-      role: { ar: "كبير محللي الاقتصاد الكلي", en: "Chief Macroeconomist" },
-      avatar: "M",
+      name: { ar: "منصة سبيكة", en: "Sabika Platform" },
+      role: { ar: "الناشر الرسمي", en: "Official Publisher" },
+      avatar: "S",
     },
     title: {
       ar: "مثلث الذهب والتضخم والفائدة: تفكيك العلاقة التاريخية مع قرارات الفيدرالي الأمريكي",
@@ -184,12 +186,13 @@ export const ARTICLES: Article[] = [
   {
     slug: "egypt-gold-premium",
     category: "news",
+    coverImage: "/assets/images/blog/egypt-gold-premium.png",
     readTime: 5,
     publishedAt: "2026-06-16",
     author: {
-      name: { ar: "أحمد عبد الهادي", en: "Ahmed Abdel-Hady" },
-      role: { ar: "مستشار التخطيط المالي وتجارة المعادن", en: "Financial Planner & Bullion Advisory" },
-      avatar: "A",
+      name: { ar: "منصة سبيكة", en: "Sabika Platform" },
+      role: { ar: "الناشر الرسمي", en: "Official Publisher" },
+      avatar: "S",
     },
     title: {
       ar: "تسعير الذهب في مصر: فك شفرة 'العلاوة المحلية' وعلاقتها بالطلب وسعر الصرف",
@@ -339,11 +342,12 @@ export const ARTICLES: Article[] = [
   {
     slug: "dca-vs-trading",
     category: "guide",
+    coverImage: "/assets/images/blog/dca-vs-trading.png",
     readTime: 5,
     publishedAt: "2026-06-16",
     author: {
-      name: { ar: "سارة المهدي", en: "Sarah El-Mahdy" },
-      role: { ar: "مخططة استثمارات ومستشارة ثروات", en: "Wealth Management Consultant" },
+      name: { ar: "منصة سبيكة", en: "Sabika Platform" },
+      role: { ar: "الناشر الرسمي", en: "Official Publisher" },
       avatar: "S",
     },
     title: {
