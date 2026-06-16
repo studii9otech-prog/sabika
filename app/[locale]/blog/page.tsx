@@ -110,31 +110,51 @@ export default async function BlogPage({ params, searchParams }: PageProps) {
             <div className="absolute top-0 right-1/4 w-80 h-80 bg-primary/3 rounded-full filter blur-[100px] pointer-events-none z-0" />
             
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12">
-              {/* Left/Graphic side (Cover Image) */}
-              <div className="lg:col-span-5 relative border-b lg:border-b-0 lg:border-e border-border/40 min-h-[260px] lg:min-h-full overflow-hidden flex flex-col justify-between p-8 sm:p-10">
+              {/* Left/Graphic side (Cover Image - Clean, no overlays/filters) */}
+              <div className="lg:col-span-5 relative border-b lg:border-b-0 lg:border-e border-border/40 min-h-[260px] lg:min-h-full overflow-hidden bg-muted/20">
                 <img
                   src={featuredArticle.coverImage}
                   alt={isAr ? featuredArticle.title.ar : featuredArticle.title.en}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
                 />
-                {/* Backdrop dark/gradient overlay for elements readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/60 to-background/20 lg:from-background/95 lg:via-background/50 lg:to-background/30 z-0" />
-                
-                <div className="relative z-10">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full w-fit">
-                    {t("featured")}
-                  </span>
+              </div>
+
+              {/* Text/Details side */}
+              <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-between gap-6">
+                <div className="space-y-4">
+                  {/* Badges & Meta info */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full w-fit">
+                      {t("featured")}
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-md shadow-sm">
+                      {featuredArticle.category === "market"
+                        ? t("categoryMarket")
+                        : featuredArticle.category === "guide"
+                        ? t("categoryGuide")
+                        : t("categoryNews")}
+                    </span>
+                    <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground sm:ms-auto">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {featuredArticle.publishedAt}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {t("readTime", { minutes: featuredArticle.readTime })}
+                      </span>
+                    </div>
+                  </div>
+
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight group-hover:text-primary transition-colors font-heading">
+                    {isAr ? featuredArticle.title.ar : featuredArticle.title.en}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    {isAr ? featuredArticle.excerpt.ar : featuredArticle.excerpt.en}
+                  </p>
                 </div>
-                
-                <div className="relative z-10 mt-8 space-y-4">
-                  <span className="text-xs font-bold text-primary block">
-                    {featuredArticle.category === "market"
-                      ? t("categoryMarket")
-                      : featuredArticle.category === "guide"
-                      ? t("categoryGuide")
-                      : t("categoryNews")}
-                  </span>
-                  
+
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-border/30">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-xs text-primary bg-background/80">
                       {featuredArticle.author.avatar}
@@ -148,37 +168,15 @@ export default async function BlogPage({ params, searchParams }: PageProps) {
                       </p>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Text/Details side */}
-              <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-between gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-4 text-[10px] font-bold text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {featuredArticle.publishedAt}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      {t("readTime", { minutes: featuredArticle.readTime })}
-                    </span>
-                  </div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight group-hover:text-primary transition-colors font-heading">
-                    {isAr ? featuredArticle.title.ar : featuredArticle.title.en}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                    {isAr ? featuredArticle.excerpt.ar : featuredArticle.excerpt.en}
-                  </p>
+                  <Link
+                    href={`/${locale}/blog/${featuredArticle.slug}`}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 group-hover:translate-x-1 transition-all cursor-pointer"
+                  >
+                    <span>{t("readMore")}</span>
+                    <ArrowRight className={`w-3.5 h-3.5 ${isAr ? "rotate-180" : ""}`} />
+                  </Link>
                 </div>
-
-                <Link
-                  href={`/${locale}/blog/${featuredArticle.slug}`}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 group-hover:translate-x-1 transition-all w-fit cursor-pointer"
-                >
-                  <span>{t("readMore")}</span>
-                  <ArrowRight className={`w-3.5 h-3.5 ${isAr ? "rotate-180" : ""}`} />
-                </Link>
               </div>
             </div>
           </div>
