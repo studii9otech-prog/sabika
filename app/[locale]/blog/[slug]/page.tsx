@@ -24,15 +24,44 @@ export async function generateMetadata({ params }: PageProps) {
   const article = ARTICLES.find((a) => a.slug === slug);
   if (!article) return {};
 
+  const title = `${article.title[locale as "ar" | "en"]} - ${locale === "ar" ? "سبيكة" : "Sabika"}`;
+  const description = article.excerpt[locale as "ar" | "en"];
+  const url = `https://sabika-app.com/${locale}/blog/${slug}`;
+  const imageUrl = `https://sabika-app.com${article.coverImage}`;
+
   return {
-    title: `${article.title[locale as "ar" | "en"]} - ${locale === "ar" ? "سبيكة" : "Sabika"}`,
-    description: article.excerpt[locale as "ar" | "en"],
+    title,
+    description,
     alternates: {
-      canonical: `https://sabika-app.com/${locale}/blog/${slug}`,
+      canonical: url,
       languages: {
         ar: `https://sabika-app.com/ar/blog/${slug}`,
         en: `https://sabika-app.com/en/blog/${slug}`,
       },
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: locale === "ar" ? "منصة سبيكة" : "Sabika Platform",
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+      locale: locale === "ar" ? "ar_EG" : "en_US",
+      type: "article",
+      publishedTime: article.publishedAt,
+      authors: [locale === "ar" ? "منصة سبيكة" : "Sabika Platform"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
     },
   };
 }

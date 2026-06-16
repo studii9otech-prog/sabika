@@ -11,15 +11,39 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "blogPage" });
+  const title = `${t("title")} - ${locale === "ar" ? "سبيكة" : "Sabika"}`;
+  const description = t("subtitle");
   return {
-    title: `${t("title")} - ${locale === "ar" ? "سبيكة" : "Sabika"}`,
-    description: t("subtitle"),
+    title,
+    description,
     alternates: {
       canonical: `https://sabika-app.com/${locale}/blog`,
       languages: {
         ar: "https://sabika-app.com/ar/blog",
         en: "https://sabika-app.com/en/blog",
       },
+    },
+    openGraph: {
+      title,
+      description,
+      url: `https://sabika-app.com/${locale}/blog`,
+      siteName: locale === "ar" ? "سبيكة" : "Sabika",
+      images: [
+        {
+          url: "https://sabika-app.com/assets/images/sabika_preview.png",
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+      locale: locale === "ar" ? "ar_EG" : "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["https://sabika-app.com/assets/images/sabika_preview.png"],
     },
   };
 }
