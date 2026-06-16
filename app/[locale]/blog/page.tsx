@@ -2,6 +2,7 @@ import { ARTICLES } from "@/lib/blog/data";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { BookOpen, Calendar, Clock, ArrowRight, User } from "lucide-react";
+import { getBaseUrl } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -13,24 +14,28 @@ export async function generateMetadata({ params }: PageProps) {
   const t = await getTranslations({ locale, namespace: "blogPage" });
   const title = `${t("title")} - ${locale === "ar" ? "سبيكة" : "Sabika"}`;
   const description = t("subtitle");
+  const baseUrl = getBaseUrl();
+  const canonicalUrl = `${baseUrl}/${locale}/blog`;
+  const previewImageUrl = `${baseUrl}/assets/images/sabika_preview.png`;
+
   return {
     title,
     description,
     alternates: {
-      canonical: `https://sabika-app.com/${locale}/blog`,
+      canonical: canonicalUrl,
       languages: {
-        ar: "https://sabika-app.com/ar/blog",
-        en: "https://sabika-app.com/en/blog",
+        ar: `${baseUrl}/ar/blog`,
+        en: `${baseUrl}/en/blog`,
       },
     },
     openGraph: {
       title,
       description,
-      url: `https://sabika-app.com/${locale}/blog`,
+      url: canonicalUrl,
       siteName: locale === "ar" ? "سبيكة" : "Sabika",
       images: [
         {
-          url: "https://sabika-app.com/assets/images/sabika_preview.png",
+          url: previewImageUrl,
           width: 1200,
           height: 630,
           alt: title,
@@ -43,7 +48,7 @@ export async function generateMetadata({ params }: PageProps) {
       card: "summary_large_image",
       title,
       description,
-      images: ["https://sabika-app.com/assets/images/sabika_preview.png"],
+      images: [previewImageUrl],
     },
   };
 }

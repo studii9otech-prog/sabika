@@ -7,6 +7,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import MarketStatusBar from "@/components/layout/MarketStatusBar";
 import type { Metadata } from "next";
+import { getBaseUrl } from "@/lib/utils";
 
 export async function generateMetadata({
   params,
@@ -28,6 +29,9 @@ export async function generateMetadata({
     ? ["سعر الذهب اليوم", "أسعار الذهب في مصر", "سعر الذهب مباشر", "عيار 21", "سعر جرام الذهب", "سبائك الذهب", "شراء الذهب مصر", "بورصة الذهب مباشر", "حاسبة الذهب", "سبيكة"]
     : ["gold price today", "live gold rates Egypt", "gold price per gram", "buy gold bullion", "karat 21 gold price", "spot gold ticker", "gold investment calculator", "Sabika gold"];
 
+  const baseUrl = getBaseUrl();
+  const canonicalUrl = `${baseUrl}/${locale}`;
+
   return {
     title: {
       default: title,
@@ -36,16 +40,16 @@ export async function generateMetadata({
     description,
     keywords,
     alternates: {
-      canonical: `https://sabika-app.com/${locale}`,
+      canonical: canonicalUrl,
       languages: {
-        ar: "https://sabika-app.com/ar",
-        en: "https://sabika-app.com/en",
+        ar: `${baseUrl}/ar`,
+        en: `${baseUrl}/en`,
       },
     },
     openGraph: {
       title,
       description,
-      url: `https://sabika-app.com/${locale}`,
+      url: canonicalUrl,
       siteName: isArabic ? "سبيكة" : "Sabika",
       images: [
         {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Rubik } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { getBaseUrl } from "@/lib/utils";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,7 +21,7 @@ const rubik = Rubik({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://sabika-app.com"),
+  metadataBase: new URL(getBaseUrl()),
   title: "أسعار الذهب اليوم مباشر في مصر والوطن العربي | سبيكة Sabika",
   description:
     "تابع أسعار الذهب اليوم في مصر والوطن العربي لحظة بلحظة. أسعار مباشرة لعيار 24، 21، 18، وأونصة الذهب، بالإضافة إلى إشارات الاستثمار وحاسبة الذهب الذكية لحفظ أموالك.",

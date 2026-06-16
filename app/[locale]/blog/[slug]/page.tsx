@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Calendar, Clock, ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
 import ShareButton from "@/components/common/ShareButton";
+import { getBaseUrl } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -26,8 +27,9 @@ export async function generateMetadata({ params }: PageProps) {
 
   const title = `${article.title[locale as "ar" | "en"]} - ${locale === "ar" ? "سبيكة" : "Sabika"}`;
   const description = article.excerpt[locale as "ar" | "en"];
-  const url = `https://sabika-app.com/${locale}/blog/${slug}`;
-  const imageUrl = `https://sabika-app.com${article.coverImage}`;
+  const baseUrl = getBaseUrl();
+  const url = `${baseUrl}/${locale}/blog/${slug}`;
+  const imageUrl = `${baseUrl}${article.coverImage}`;
 
   return {
     title,
@@ -35,8 +37,8 @@ export async function generateMetadata({ params }: PageProps) {
     alternates: {
       canonical: url,
       languages: {
-        ar: `https://sabika-app.com/ar/blog/${slug}`,
-        en: `https://sabika-app.com/en/blog/${slug}`,
+        ar: `${baseUrl}/ar/blog/${slug}`,
+        en: `${baseUrl}/en/blog/${slug}`,
       },
     },
     openGraph: {
