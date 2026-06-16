@@ -30,7 +30,7 @@ export const ARTICLES: Article[] = [
   {
     slug: "fed-rates-gold",
     category: "market",
-    coverImage: "/assets/images/blog/fed-rates-gold.png",
+    coverImage: "/assets/images/blog/fed-rates-gold.jpg",
     readTime: 12,
     publishedAt: "2026-06-15",
     author: {
@@ -268,7 +268,7 @@ export const ARTICLES: Article[] = [
   {
     slug: "egypt-gold-premium",
     category: "news",
-    coverImage: "/assets/images/blog/egypt-gold-premium.png",
+    coverImage: "/assets/images/blog/egypt-gold-premium.jpg",
     readTime: 10,
     publishedAt: "2026-06-16",
     author: {
@@ -496,7 +496,7 @@ export const ARTICLES: Article[] = [
   {
     slug: "dca-vs-trading",
     category: "guide",
-    coverImage: "/assets/images/blog/dca-vs-trading.png",
+    coverImage: "/assets/images/blog/dca-vs-trading.jpg",
     readTime: 10,
     publishedAt: "2026-06-16",
     author: {
