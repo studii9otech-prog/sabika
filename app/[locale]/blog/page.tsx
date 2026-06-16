@@ -105,7 +105,10 @@ export default async function BlogPage({ params, searchParams }: PageProps) {
 
         {/* ── Featured Article Layout ─────────────────────────── */}
         {featuredArticle && (
-          <div className="group relative rounded-2xl border border-border/60 bg-card hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden text-start">
+          <Link
+            href={`/${locale}/blog/${featuredArticle.slug}`}
+            className="group relative block rounded-2xl border border-border/60 bg-card hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden text-start cursor-pointer"
+          >
             {/* Subtle glow */}
             <div className="absolute top-0 right-1/4 w-80 h-80 bg-primary/3 rounded-full filter blur-[100px] pointer-events-none z-0" />
             
@@ -156,8 +159,17 @@ export default async function BlogPage({ params, searchParams }: PageProps) {
 
                 <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-border/30">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-xs text-primary bg-background/80">
-                      {featuredArticle.author.avatar}
+                    <div className="h-8 px-2 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center bg-background/80 select-none">
+                      <img
+                        src="/assets/images/logo.svg"
+                        alt="Sabika"
+                        className="h-4 w-auto object-contain dark:hidden"
+                      />
+                      <img
+                        src="/assets/images/logo_footer.svg"
+                        alt="Sabika"
+                        className="h-4 w-auto object-contain hidden dark:block"
+                      />
                     </div>
                     <div>
                       <p className="text-xs font-black text-foreground">
@@ -169,26 +181,24 @@ export default async function BlogPage({ params, searchParams }: PageProps) {
                     </div>
                   </div>
 
-                  <Link
-                    href={`/${locale}/blog/${featuredArticle.slug}`}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 group-hover:translate-x-1 transition-all cursor-pointer"
-                  >
+                  <div className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 group-hover:translate-x-1 transition-all">
                     <span>{t("readMore")}</span>
                     <ArrowRight className={`w-3.5 h-3.5 ${isAr ? "rotate-180" : ""}`} />
-                  </Link>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         )}
 
         {/* ── Articles Grid ───────────────────────────────────── */}
         {gridArticles.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-start">
             {gridArticles.map((article) => (
-              <div
+              <Link
                 key={article.slug}
-                className="group bg-card border border-border/60 hover:border-primary/30 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+                href={`/${locale}/blog/${article.slug}`}
+                className="group bg-card border border-border/60 hover:border-primary/30 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer"
               >
                 {/* Cover Image at Top */}
                 <div className="relative h-48 w-full overflow-hidden border-b border-border/40 bg-muted/20">
@@ -231,8 +241,17 @@ export default async function BlogPage({ params, searchParams }: PageProps) {
                   {/* Footer metadata & link */}
                   <div className="flex items-center justify-between pt-4 border-t border-border/30">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-[10px] text-primary">
-                        {article.author.avatar}
+                      <div className="h-7 px-1.5 rounded-md bg-primary/5 border border-primary/10 flex items-center justify-center bg-background/80 select-none">
+                        <img
+                          src="/assets/images/logo.svg"
+                          alt="Sabika"
+                          className="h-3.5 w-auto object-contain dark:hidden"
+                        />
+                        <img
+                          src="/assets/images/logo_footer.svg"
+                          alt="Sabika"
+                          className="h-3.5 w-auto object-contain hidden dark:block"
+                        />
                       </div>
                       <div>
                         <p className="text-[10px] font-bold text-foreground">
@@ -241,16 +260,13 @@ export default async function BlogPage({ params, searchParams }: PageProps) {
                       </div>
                     </div>
 
-                    <Link
-                      href={`/${locale}/blog/${article.slug}`}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 transition-all cursor-pointer"
-                    >
+                    <div className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 transition-all">
                       <span>{t("readMore")}</span>
                       <ArrowRight className={`w-3.5 h-3.5 ${isAr ? "rotate-180" : ""}`} />
-                    </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         ) : (

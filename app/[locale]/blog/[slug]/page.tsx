@@ -105,8 +105,17 @@ export default async function ArticlePage({ params }: PageProps) {
 
           {/* Author Details Card */}
           <div className="flex items-center gap-3.5 pt-4 border-t border-border/20 w-fit">
-            <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-sm text-primary select-none">
-              {article.author.avatar}
+            <div className="h-9 px-2 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center bg-background/80 select-none">
+              <img
+                src="/assets/images/logo.svg"
+                alt="Sabika"
+                className="h-5 w-auto object-contain dark:hidden"
+              />
+              <img
+                src="/assets/images/logo_footer.svg"
+                alt="Sabika"
+                className="h-5 w-auto object-contain hidden dark:block"
+              />
             </div>
             <div>
               <p className="text-xs font-black text-foreground">
