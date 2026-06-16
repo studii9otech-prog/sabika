@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { Menu, Coins, LineChart, Brain, Globe } from "lucide-react";
+import { Menu, Coins, LineChart, Brain, Globe, BookOpen, Mail } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import LanguageToggle from "@/components/common/LanguageToggle";
 import ThemeToggle from "@/components/common/ThemeToggle";
@@ -14,6 +14,7 @@ const navLinks = [
   { key: "analytics", href: "/analytics" },
   { key: "advisor", href: "/advisor" },
   { key: "market", href: "/market" },
+  { key: "blog", href: "/blog" },
   { key: "contact", href: "/contact" },
 ];
 
@@ -133,6 +134,10 @@ export default function Header() {
                           ? LineChart
                           : link.key === "advisor"
                           ? Brain
+                          : link.key === "blog"
+                          ? BookOpen
+                          : link.key === "contact"
+                          ? Mail
                           : Globe;
 
                       return (

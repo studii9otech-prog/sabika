@@ -6,6 +6,7 @@
     "advisor": "Advisor",
     "market": "Market Hub",
     "contact": "Contact Us",
+    "blog": "Blog",
     "settings": "Settings",
     "logo": "S",
     "brand": "Sabika"
@@ -382,5 +383,22 @@
     "placeholderEmail": "name@example.com",
     "placeholderSubject": "What is this regarding?",
     "placeholderMessage": "Write your message details here..."
+  },
+  "blogPage": {
+    "title": "Blog & Analysis",
+    "subtitle": "Expert articles and economic reports backed by actual statistics and studies of local and global gold markets.",
+    "featured": "Featured Article",
+    "readMore": "Read More",
+    "readTime": "{minutes} min read",
+    "publishedAt": "Published on {date}",
+    "all": "All",
+    "categoryMarket": "Market Analysis",
+    "categoryGuide": "Investment Guides",
+    "categoryNews": "Reports & News",
+    "backToBlog": "Back to Blog",
+    "share": "Share Article",
+    "toc": "Table of Contents",
+    "copied": "Link copied!",
+    "copyLink": "Copy Link"
   }
 }

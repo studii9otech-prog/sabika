@@ -6,6 +6,7 @@
     "advisor": "المستشار",
     "market": "السوق المباشر",
     "contact": "تواصل معنا",
+    "blog": "المدونة",
     "settings": "الإعدادات",
     "logo": "س",
     "brand": "سبيكة"
@@ -382,5 +383,22 @@
     "placeholderEmail": "name@example.com",
     "placeholderSubject": "عن ماذا تريد التحدث؟",
     "placeholderMessage": "اكتب تفاصيل رسالتك هنا..."
+  },
+  "blogPage": {
+    "title": "المدونة والتحليلات",
+    "subtitle": "مقالات متخصصة وتقارير اقتصادية مبنية على إحصائيات ودراسات فعلية لأسواق الذهب المحلية والعالمية.",
+    "featured": "مقال مميز",
+    "readMore": "اقرأ المزيد",
+    "readTime": "{minutes} دقائق قراءة",
+    "publishedAt": "نُشر في {date}",
+    "all": "الكل",
+    "categoryMarket": "تحليلات السوق",
+    "categoryGuide": "أدلة الاستثمار",
+    "categoryNews": "تقارير وأخبار",
+    "backToBlog": "العودة للمدونة",
+    "share": "مشاركة المقال",
+    "toc": "جدول المحتويات",
+    "copied": "تم نسخ الرابط!",
+    "copyLink": "نسخ الرابط"
   }
 }

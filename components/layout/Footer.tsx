@@ -16,6 +16,7 @@ export default function Footer() {
     { key: "analytics", href: "/analytics" },
     { key: "advisor", href: "/advisor" },
     { key: "market", href: "/market" },
+    { key: "blog", href: "/blog" },
     { key: "contact", href: "/contact" },
   ];
 
