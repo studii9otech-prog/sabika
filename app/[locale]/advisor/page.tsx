@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { getBaseUrl } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -17,14 +18,15 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "advisorPage" });
+  const baseUrl = getBaseUrl();
   return {
     title: `${t("title")} - ${locale === "ar" ? "سبيكة" : "Sabika"}`,
     description: t("subtitle"),
     alternates: {
-      canonical: `https://sabika-app.com/${locale}/advisor`,
+      canonical: `${baseUrl}/${locale}/advisor`,
       languages: {
-        ar: "https://sabika-app.com/ar/advisor",
-        en: "https://sabika-app.com/en/advisor",
+        ar: `${baseUrl}/ar/advisor`,
+        en: `${baseUrl}/en/advisor`,
       },
     },
   };

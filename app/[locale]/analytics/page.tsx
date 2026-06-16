@@ -2,6 +2,7 @@ import PriceChart from "@/components/charts/PriceChart";
 import SignalCard from "@/components/advisor/SignalCard";
 import AnalysisCards from "@/components/analytics/AnalysisCards";
 import { getTranslations } from "next-intl/server";
+import { getBaseUrl } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -10,14 +11,15 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "analytics" });
+  const baseUrl = getBaseUrl();
   return {
     title: `${t("title")} - ${locale === "ar" ? "سبيكة" : "Sabika"}`,
     description: t("subtitle"),
     alternates: {
-      canonical: `https://sabika-app.com/${locale}/analytics`,
+      canonical: `${baseUrl}/${locale}/analytics`,
       languages: {
-        ar: "https://sabika-app.com/ar/analytics",
-        en: "https://sabika-app.com/en/analytics",
+        ar: `${baseUrl}/ar/analytics`,
+        en: `${baseUrl}/en/analytics`,
       },
     },
   };

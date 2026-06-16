@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import PlanDetailClient from "./PlanDetailClient";
 import type { Metadata } from "next";
+import { getBaseUrl } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ locale: string; id: string }>;
@@ -25,21 +26,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const baseTitle = `${title} - ${locale === "ar" ? "سبيكة" : "Sabika"}`;
+  const baseUrl = getBaseUrl();
 
   return {
     title: baseTitle,
     description: description,
     alternates: {
-      canonical: `https://sabika-app.com/${locale}/advisor/plan/${id}`,
+      canonical: `${baseUrl}/${locale}/advisor/plan/${id}`,
       languages: {
-        ar: `https://sabika-app.com/ar/advisor/plan/${id}`,
-        en: `https://sabika-app.com/en/advisor/plan/${id}`,
+        ar: `${baseUrl}/ar/advisor/plan/${id}`,
+        en: `${baseUrl}/en/advisor/plan/${id}`,
       },
     },
     openGraph: {
       title: baseTitle,
       description: description,
-      url: `https://sabika-app.com/${locale}/advisor/plan/${id}`,
+      url: `${baseUrl}/${locale}/advisor/plan/${id}`,
       siteName: locale === "ar" ? "سبيكة" : "Sabika",
       images: [
         {

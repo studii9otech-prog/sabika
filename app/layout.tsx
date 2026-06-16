@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Rubik } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { getBaseUrl } from "@/lib/utils";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     title: "أسعار الذهب اليوم مباشر في مصر والوطن العربي | سبيكة Sabika",
     description:
       "تابع أسعار الذهب اليوم في مصر والوطن العربي لحظة بلحظة. أسعار مباشرة لعيار 24، 21، 18، وأونصة الذهب، بالإضافة إلى إشارات الاستثمار وحاسبة الذهب الذكية لحفظ أموالك.",
-    url: "https://sabika-app.com",
+    url: getBaseUrl(),
     siteName: "Sabika سبيكة",
     images: [
       {
@@ -47,7 +48,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "أسعار الذهب اليوم مباشر في مصر والوطن العربي | سبيكة Sabika",
     description:
-      "تابع أسعار الذهب اليوم في مصر والوطن العربي لحظة بلحظة. أسعار مباشرة لعيار 24، 21، 18، وأونصة الذهب، بالإضافة إلى إشارات الاستثمار وحاسبة الذهب الذكية لحفظ أموالك.",
+      "تابع أسعار الذهب اليوم في مصر والوطن العربي لحظة بلحظة. أسعار مباشرة لعيار 24، 21, 18، وأونصة الذهب، بالإضافة إلى إشارات الاستثمار وحاسبة الذهب الذكية لحفظ أموالك.",
     images: ["/assets/images/sabika_preview.png"],
   },
   icons: {
@@ -69,25 +70,22 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${rubik.variable} h-full antialiased`}
     >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var theme = localStorage.getItem('theme');
-                  if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                  }
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
-      </head>
+      <head />
       <body suppressHydrationWarning className="min-h-full bg-background text-foreground">
+        <Script id="theme-loader" strategy="beforeInteractive">
+          {`
+            (function() {
+              try {
+                var theme = localStorage.getItem('theme');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (e) {}
+            })();
+          `}
+        </Script>
         {children}
         <Analytics />
       </body>

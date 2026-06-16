@@ -1,6 +1,7 @@
 import ContactForm from "@/components/common/ContactForm";
 import { getTranslations } from "next-intl/server";
 import { Mail } from "lucide-react";
+import { getBaseUrl } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -9,14 +10,15 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "contactPage" });
+  const baseUrl = getBaseUrl();
   return {
     title: `${t("title")} - ${locale === "ar" ? "سبيكة" : "Sabika"}`,
     description: t("subtitle"),
     alternates: {
-      canonical: `https://sabika-app.com/${locale}/contact`,
+      canonical: `${baseUrl}/${locale}/contact`,
       languages: {
-        ar: "https://sabika-app.com/ar/contact",
-        en: "https://sabika-app.com/en/contact",
+        ar: `${baseUrl}/ar/contact`,
+        en: `${baseUrl}/en/contact`,
       },
     },
   };

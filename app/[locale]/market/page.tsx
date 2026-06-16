@@ -3,17 +3,20 @@ import MarketDashboard from "@/components/market/MarketDashboard";
 import { Coins } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
+import { getBaseUrl } from "@/lib/utils";
+
 export async function generateMetadata({ params }: PageProps) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "marketPage" });
+  const baseUrl = getBaseUrl();
   return {
     title: `${t("title")} - ${locale === "ar" ? "سبيكة" : "Sabika"}`,
     description: t("subtitle"),
     alternates: {
-      canonical: `https://sabika-app.com/${locale}/market`,
+      canonical: `${baseUrl}/${locale}/market`,
       languages: {
-        ar: "https://sabika-app.com/ar/market",
-        en: "https://sabika-app.com/en/market",
+        ar: `${baseUrl}/ar/market`,
+        en: `${baseUrl}/en/market`,
       },
     },
   };

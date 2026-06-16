@@ -93,6 +93,7 @@ export default async function LocaleLayout({
 
   const messages = await getMessages();
   const isArabic = locale === "ar";
+  const baseUrl = getBaseUrl();
 
   const faqQuestions = [
     {
@@ -142,7 +143,7 @@ export default async function LocaleLayout({
       {
         "@type": "WebApplication",
         "name": isArabic ? "سبيكة - أسعار الذهب اليوم مباشر" : "Sabika - Live Gold Prices",
-        "url": `https://sabika-app.com/${locale}`,
+        "url": `${baseUrl}/${locale}`,
         "description": isArabic
           ? "تابع أسعار الذهب اليوم في مصر والوطن العربي لحظة بلحظة. أسعار مباشرة لعيار 24، 21، 18، وأونصة الذهب، بالإضافة إلى إشارات الاستثمار وحاسبة الذهب الذكية لحفظ أموالك."
           : "Track live gold rates today in Egypt & the Arab world. Instant prices for 24K, 22K, 21K, 18K gold and spot ounces, with AI investment signals and DCA savings tools.",
