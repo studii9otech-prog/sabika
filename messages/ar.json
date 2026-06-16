@@ -21,7 +21,9 @@
     "globalPrice": "عالمياً",
     "ounce": "أونصة",
     "dollar": "الدولار",
-    "euro": "اليورو"
+    "euro": "اليورو",
+    "autoRefresh": "تحديث تلقائي كل ٣٠ ثانية",
+    "refreshing": "جاري التحديث..."
   },
   "metals": {
     "gold": "الذهب",

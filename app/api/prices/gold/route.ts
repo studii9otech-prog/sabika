@@ -4,7 +4,7 @@ import {
   MOCK_GOLD_DATA,
 } from "@/lib/calculations/goldPrice";
 
-export const revalidate = 60; // Cache revalidation in Next.js
+export const revalidate = 30; // Cache revalidation in Next.js
 
 const HOME_URL = "https://gold-price-live.com/";
 const MARKET_URL = "https://gold-price-live.com/market";

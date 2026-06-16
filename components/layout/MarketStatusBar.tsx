@@ -22,7 +22,7 @@ export default function MarketStatusBar() {
   const tHero = useTranslations("hero");
   const locale = useLocale();
   const { data: metals } = useMetals();
-  const { activeCurrency, activeUsdToLocal } = useActivePrices();
+  const { activeCurrency, activeUsdToLocal, isValidating, data: activePricesData } = useActivePrices();
   const [time, setTime] = useState<string>("");
   const [isOpen, setIsOpen] = useState(true);
 
@@ -101,19 +101,25 @@ export default function MarketStatusBar() {
     <div className="w-full bg-[#0C0C0E] border-b border-white/[0.06] text-start">
       {/* ── Row 1: Market status + time ─────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-8">
-        {/* Status dot */}
-        <div className="flex items-center gap-1.5">
-          <span
-            className={`w-1.5 h-1.5 rounded-full animate-pulse-dot ${
-              isOpen ? "bg-emerald-500" : "bg-red-500"
-            }`}
-          />
-          <span
-            className={`text-[11px] font-semibold tracking-wide ${
-              isOpen ? "text-emerald-500" : "text-red-500"
-            }`}
-          >
-            {isOpen ? t("marketOpen") : t("marketClosed")}
+        {/* Status dot & auto-refresh message */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span
+              className={`w-1.5 h-1.5 rounded-full animate-pulse-dot ${
+                isOpen ? "bg-emerald-500" : "bg-red-500"
+              }`}
+            />
+            <span
+              className={`text-[11px] font-semibold tracking-wide ${
+                isOpen ? "text-emerald-500" : "text-red-500"
+              }`}
+            >
+              {isOpen ? t("marketOpen") : t("marketClosed")}
+            </span>
+          </div>
+          
+          <span className="hidden xs:inline-block text-[10px] text-zinc-500 font-medium select-none">
+            • {isValidating ? tHero("refreshing") : tHero("autoRefresh")}
           </span>
         </div>
 
@@ -175,6 +181,17 @@ export default function MarketStatusBar() {
           </div>
         </div>
       )}
+      
+      {/* Dynamic 30-second progress bar linked to data update key */}
+      <div className="relative w-full h-[1.5px] bg-white/[0.02] overflow-hidden">
+        <div
+          key={activePricesData?.meta?.lastUpdated}
+          className={`h-full bg-gradient-to-r from-amber-500/10 via-amber-500/80 to-amber-500/10 transition-all duration-300 ${
+            isValidating ? "w-full opacity-100 animate-pulse" : "animate-progress-30s"
+          }`}
+          style={{ width: isValidating ? "100%" : undefined }}
+        />
+      </div>
     </div>
   );
 }

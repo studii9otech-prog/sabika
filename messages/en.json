@@ -21,7 +21,9 @@
     "globalPrice": "Global",
     "ounce": "oz",
     "dollar": "USD",
-    "euro": "EUR"
+    "euro": "EUR",
+    "autoRefresh": "Auto-refreshes every 30 seconds",
+    "refreshing": "Refreshing..."
   },
   "metals": {
     "gold": "Gold",

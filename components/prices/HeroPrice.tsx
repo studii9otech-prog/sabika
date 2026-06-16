@@ -9,7 +9,7 @@ import OunceSpotTicker from "@/components/prices/OunceSpotTicker";
 import { useActivePrices, useOuncePrice } from "@/hooks/useLivePrice";
 import { formatPriceChange, formatChange, getSecondsSince } from "@/lib/utils/format";
 import { generateMockHistory } from "@/lib/calculations/goldPrice";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, RefreshCw } from "lucide-react";
 import HeroChart from "@/components/charts/HeroChart";
 
 const KARATS = ["21", "18", "24", "14", "12"] as const;
@@ -35,7 +35,7 @@ export default function HeroPrice() {
   const { ounceUSD: liveOunceUSD } = useOuncePrice();
   const t = useTranslations("hero");
   const tCommon = useTranslations("common");
-  const { data, isLoading, activeCurrency } = useActivePrices();
+  const { data, isLoading, activeCurrency, isValidating, refresh } = useActivePrices();
   const [selectedKarat, setSelectedKarat] = useState<string>("21");
   const [secondsAgo, setSecondsAgo] = useState(0);
   const [hoveredPrice, setHoveredPrice] = useState<number | null>(null);
@@ -256,9 +256,17 @@ export default function HeroPrice() {
             </span>
           </span>
         </div>
-        <span>
-          {isAr ? `تحديث · ${secondsAgo}ث` : `Updated · ${secondsAgo}s`}
-        </span>
+        <button
+          onClick={() => refresh()}
+          disabled={isValidating}
+          className="flex items-center gap-1 hover:text-zinc-200 cursor-pointer disabled:opacity-50 group active:scale-95 transition-all text-[11px] font-semibold"
+          title={isAr ? "تحديث الآن" : "Refresh Now"}
+        >
+          <RefreshCw className={`w-2.5 h-2.5 ${isValidating ? "animate-spin" : "group-hover:rotate-45 transition-transform duration-300"}`} />
+          <span>
+            {isAr ? `تحديث · ${secondsAgo}ث` : `Updated · ${secondsAgo}s`}
+          </span>
+        </button>
       </div>
 
     </div>

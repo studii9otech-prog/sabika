@@ -16,13 +16,13 @@ const fetcher = async (url: string) => {
 };
 
 export function useGoldPrices() {
-  const { data, error, isLoading, mutate } = useSWR<GoldPricesResponse>(
+  const { data, error, isLoading, mutate, isValidating } = useSWR<GoldPricesResponse>(
     "/api/prices/gold",
     fetcher,
     {
-      refreshInterval: 60 * 1000,
+      refreshInterval: 30 * 1000, // Refresh in background every 30 seconds
       revalidateOnFocus: true,
-      dedupingInterval: 30 * 1000,
+      dedupingInterval: 15 * 1000,
     }
   );
 
@@ -30,12 +30,13 @@ export function useGoldPrices() {
     data,
     error,
     isLoading,
+    isValidating,
     refresh: mutate,
   };
 }
 
 export function useActivePrices() {
-  const { data: goldData, error, isLoading, refresh } = useGoldPrices();
+  const { data: goldData, error, isLoading, refresh, isValidating } = useGoldPrices();
   const { country, currency, setCurrency } = useSettingsStore();
 
   const countryToCurrencyMap: Record<string, string> = {
@@ -135,6 +136,7 @@ export function useActivePrices() {
     data: activeData,
     error,
     isLoading,
+    isValidating,
     refresh,
     activeCountry,
     activeCurrency,
