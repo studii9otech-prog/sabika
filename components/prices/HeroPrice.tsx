@@ -82,7 +82,7 @@ export default function HeroPrice() {
     if (!priceData) return [];
     
     // Generate 24 hourly points using the deterministic generator
-    const raw = generateMockHistory(priceData.gramPriceEGP, 24, 0.005);
+    const raw = generateMockHistory(priceData.gramPriceEGP, 24, 0.002, true);
     
     return raw.map((point, i) => {
       const hour = 24 - i;

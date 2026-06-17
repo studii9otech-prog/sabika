@@ -86,28 +86,43 @@ function seedRandom(seed: number) {
 export function generateMockHistory(
   currentPrice: number,
   days: number,
-  volatility: number = 0.015
+  volatility: number = 0.015,
+  isHourly: boolean = false
 ): { timestamp: string; price: number }[] {
   const data: { timestamp: string; price: number }[] = [];
-  let price = currentPrice * (1 - days * 0.001); // نبدأ من سعر أقل قليلاً
   
-  // Seed the random generator using the currentPrice to ensure stable points
-  const random = seedRandom(Math.floor(currentPrice * 17) + days);
-
-  for (let i = days; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const change = (random() - 0.48) * volatility * price;
-    price = Math.max(price + change, currentPrice * 0.7);
-
-    data.push({
-      timestamp: date.toISOString(),
-      price: Math.round(price),
-    });
+  // استخدام seed ثابت يعتمد فقط على عدد الأيام والفترة لضمان أن شكل المنحنى ثابت 100% ولا يقفز أو يتغير عند تحديث السعر
+  const random = seedRandom(days + (isHourly ? 100 : 200) + 42);
+  
+  // توليد معاملات التغير النسبية بالرجوع للخلف من النقطة الأخيرة (التي تمثل السعر الحالي بقيمة 1.0)
+  const multipliers = new Array(days + 1);
+  multipliers[days] = 1.0;
+  
+  let currentMultiplier = 1.0;
+  for (let i = days - 1; i >= 0; i--) {
+    // إضافة انحياز طفيف للأعلى لمحاكاة النمو التاريخي للذهب عبر الزمن عند الرجوع للخلف
+    const change = (random() - 0.46) * volatility;
+    currentMultiplier = currentMultiplier * (1 - change);
+    // حدود الأمان لمنع تضخم الأسعار بشكل غير منطقي
+    currentMultiplier = Math.max(0.4, Math.min(2.5, currentMultiplier));
+    multipliers[i] = currentMultiplier;
   }
 
-  // نتأكد آخر نقطة هي السعر الحالي
-  data[data.length - 1].price = currentPrice;
+  // بناء نقاط البيانات مع التوقيت المناسب
+  for (let i = days; i >= 0; i--) {
+    const date = new Date();
+    if (isHourly) {
+      date.setHours(date.getHours() - i);
+    } else {
+      date.setDate(date.getDate() - i);
+    }
+
+    const priceVal = Math.round(currentPrice * multipliers[days - i]);
+    data.push({
+      timestamp: date.toISOString(),
+      price: priceVal,
+    });
+  }
 
   return data;
 }

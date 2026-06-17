@@ -72,10 +72,16 @@ export default function PriceChart() {
   const karatMultiplier = Number(selectedKarat) / 21;
 
   const chartData =
-    data?.data?.map((point: { timestamp: string; price: number }) => ({
-      date: formatDate(point.timestamp, locale as Locale),
-      price: point.price * conversionFactor * karatMultiplier,
-    })) ?? [];
+    data?.data?.map((point: { timestamp: string; price: number }) => {
+      const dateObj = new Date(point.timestamp);
+      const dateLabel = period === "1D"
+        ? dateObj.toLocaleTimeString(locale === "ar" ? "ar-EG" : "en-US", { hour: "2-digit", minute: "2-digit" })
+        : formatDate(point.timestamp, locale as Locale);
+      return {
+        date: dateLabel,
+        price: point.price * conversionFactor * karatMultiplier,
+      };
+    }) ?? [];
 
   const prices = chartData.map((d: { price: number }) => d.price);
   const priceMin = prices.length ? Math.min(...prices) * 0.997 : 0;
