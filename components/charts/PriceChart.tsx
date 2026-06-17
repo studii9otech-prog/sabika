@@ -140,14 +140,14 @@ export default function PriceChart() {
 
       {/* Karat selector tabs & info */}
       <div className="mb-6 border-b border-border/30 pb-4">
-        <div className="flex flex-wrap items-center gap-1 mb-3">
+        <div className="grid grid-cols-5 sm:flex gap-1 bg-muted/20 sm:bg-transparent p-1 sm:p-0 rounded-xl mb-3 w-full sm:w-auto">
           {KARATS.map((k) => {
             const active = selectedKarat === k;
             return (
               <button
                 key={k}
                 onClick={() => setSelectedKarat(k)}
-                className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all duration-200 cursor-pointer ${
+                className={`px-1 py-1.5 sm:px-4 sm:py-1.5 text-[10px] sm:text-xs font-bold rounded-lg sm:rounded-full transition-all duration-200 cursor-pointer text-center whitespace-nowrap ${
                   active
                     ? "text-zinc-900 dark:text-zinc-50 bg-zinc-100 dark:bg-zinc-800"
                     : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300"

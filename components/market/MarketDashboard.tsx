@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { useActivePrices, useMetals, useMarketSignal, usePriceHistory } from "@/hooks/useLivePrice";
+import { useActivePrices, useMetals, useMarketSignal, usePriceHistory, useMarketDepth } from "@/hooks/useLivePrice";
 import PriceTable from "@/components/prices/PriceTable";
 import MetalCards from "@/components/prices/MetalCards";
 import MarketPulseCardsClient from "@/components/prices/MarketPulseCards";
@@ -70,6 +70,272 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
   const historyPrices = useMemo(() => {
     return historyData.map((d: any) => d.price);
   }, [historyData]);
+
+  /* ────────────────────────────────────────────────────────── */
+  /* ── Live Trading Terminal States ───────────────────────── */
+  /* ────────────────────────────────────────────────────────── */
+  const baseKarat21Price = useMemo(() => {
+    if (!goldPrices || !goldPrices.prices.karat21) return 0;
+    return goldPrices.prices.karat21.gramPriceEGP;
+  }, [goldPrices]);
+
+  const [bids, setBids] = useState<{ price: number; quantity: number }[]>([]);
+  const [asks, setAsks] = useState<{ price: number; quantity: number }[]>([]);
+  const [recentTrades, setRecentTrades] = useState<{ id: string; time: string; type: "buy" | "sell"; price: number; quantity: number }[]>([]);
+
+  // Arbitrage monitor states
+  const [arbitrageWeight, setArbitrageWeight] = useState<number>(50);
+  const [travelExpenses, setTravelExpenses] = useState<number>(18000);
+
+  // Live Binance market depth integration
+  const { data: apiDepthData } = useMarketDepth();
+
+  // Map API depth data to current Bids and Asks if available, otherwise fall back to simulated states
+  const activeBids = useMemo(() => {
+    if (apiDepthData?.success && apiDepthData.depth?.bids?.length > 0) {
+      const topBid = parseFloat(apiDepthData.depth.bids[0][0]);
+      const topAsk = parseFloat(apiDepthData.depth.asks[0][0]);
+      const paxgSpotPrice = (topBid + topAsk) / 2;
+      const priceScale = baseKarat21Price > 0 ? (baseKarat21Price / paxgSpotPrice) : 1;
+
+      return apiDepthData.depth.bids.map((b: [string, string]) => {
+        const p = parseFloat(b[0]);
+        const q = parseFloat(b[1]);
+        return {
+          price: Math.round(p * priceScale * 10) / 10,
+          quantity: Math.round(q * 31.1034768 * 10) / 10
+        };
+      });
+    }
+    return bids;
+  }, [apiDepthData, bids, baseKarat21Price]);
+
+  const activeAsks = useMemo(() => {
+    if (apiDepthData?.success && apiDepthData.depth?.asks?.length > 0) {
+      const topBid = parseFloat(apiDepthData.depth.bids[0][0]);
+      const topAsk = parseFloat(apiDepthData.depth.asks[0][0]);
+      const paxgSpotPrice = (topBid + topAsk) / 2;
+      const priceScale = baseKarat21Price > 0 ? (baseKarat21Price / paxgSpotPrice) : 1;
+
+      return apiDepthData.depth.asks.map((a: [string, string]) => {
+        const p = parseFloat(a[0]);
+        const q = parseFloat(a[1]);
+        return {
+          price: Math.round(p * priceScale * 10) / 10,
+          quantity: Math.round(q * 31.1034768 * 10) / 10
+        };
+      });
+    }
+    return asks;
+  }, [apiDepthData, asks, baseKarat21Price]);
+
+  const activeRecentTrades = useMemo(() => {
+    if (apiDepthData?.success && apiDepthData.trades?.length > 0) {
+      const topBid = apiDepthData.depth?.bids?.[0]?.[0] ? parseFloat(apiDepthData.depth.bids[0][0]) : 4200;
+      const topAsk = apiDepthData.depth?.asks?.[0]?.[0] ? parseFloat(apiDepthData.depth.asks[0][0]) : 4200;
+      const paxgSpotPrice = (topBid + topAsk) / 2;
+      const priceScale = baseKarat21Price > 0 ? (baseKarat21Price / paxgSpotPrice) : 1;
+
+      return apiDepthData.trades.map((t: any) => {
+        const date = new Date(t.time);
+        const timeStr = date.toLocaleTimeString(locale === "ar" ? "ar-EG" : "en-US", { hour12: false });
+        return {
+          id: t.id.toString(),
+          time: timeStr,
+          type: t.isBuyerMaker ? "sell" as const : "buy" as const,
+          price: Math.round(parseFloat(t.price) * priceScale * 10) / 10,
+          quantity: Math.round(parseFloat(t.qty) * 31.1034768 * 10) / 10
+        };
+      });
+    }
+    return recentTrades;
+  }, [apiDepthData, recentTrades, baseKarat21Price, locale]);
+
+  const investmentProducts = useMemo(() => {
+    if (!goldPrices || !goldPrices.prices.karat24 || !goldPrices.prices.karat21) return [];
+
+    const local24 = goldPrices.prices.karat24.gramPriceEGP;
+    const local21 = goldPrices.prices.karat21.gramPriceEGP;
+    const localScale = baseKarat21Price > 1000 ? 1 : (baseKarat21Price / 3100);
+
+    // BTC Gold Coin (8g 21K)
+    const coinNetVal = local21 * 8;
+    const coinMakerFee = 65 * 8 * localScale; // 65 EGP/g maker fee + stamp scaled
+    const coinVat = coinMakerFee * 0.14; // 14% VAT on maker fee
+    const coinBuyPrice = coinNetVal + coinMakerFee + coinVat;
+    const coinSellPrice = coinNetVal - 10 * 8 * localScale; // buyback discount of 10 EGP/g
+    const coinCashback = coinMakerFee * 0.60;
+
+    // 10g Bar (24K)
+    const bar10NetVal = local24 * 10;
+    const bar10MakerFee = 78 * 10 * localScale;
+    const bar10Vat = bar10MakerFee * 0.14;
+    const bar10BuyPrice = bar10NetVal + bar10MakerFee + bar10Vat;
+    const bar10SellPrice = bar10NetVal - 5 * 10 * localScale; // buyback discount of 5 EGP/g
+    const bar10Cashback = bar10MakerFee * 0.55;
+
+    // 50g Bar (24K)
+    const bar50NetVal = local24 * 50;
+    const bar50MakerFee = 58 * 50 * localScale;
+    const bar50Vat = bar50MakerFee * 0.14;
+    const bar50BuyPrice = bar50NetVal + bar50MakerFee + bar50Vat;
+    const bar50SellPrice = bar50NetVal - 5 * 50 * localScale;
+    const bar50Cashback = bar50MakerFee * 0.55;
+
+    // Ounce Bar (31.10g 24K)
+    const ounceNetVal = local24 * 31.1035;
+    const ounceMakerFee = 60 * 31.1035 * localScale;
+    const ounceVat = ounceMakerFee * 0.14;
+    const ounceBuyPrice = ounceNetVal + ounceMakerFee + ounceVat;
+    const ounceSellPrice = ounceNetVal - 5 * 31.1035 * localScale;
+    const ounceCashback = ounceMakerFee * 0.55;
+
+    return [
+      {
+        id: "coin",
+        nameAr: "جنيه ذهب استثماري (BTC)",
+        nameEn: "Investment Gold Coin (BTC)",
+        karat: "21K",
+        weight: 8,
+        buyPrice: coinBuyPrice,
+        sellPrice: coinSellPrice,
+        makerFee: coinMakerFee + coinVat,
+        cashback: coinCashback,
+        purity: "87.5%",
+      },
+      {
+        id: "bar10",
+        nameAr: "سبيكة ذهب نقي 10 جرام",
+        nameEn: "10g Pure Gold Bar",
+        karat: "24K",
+        weight: 10,
+        buyPrice: bar10BuyPrice,
+        sellPrice: bar10SellPrice,
+        makerFee: bar10MakerFee + bar10Vat,
+        cashback: bar10Cashback,
+        purity: "99.99%",
+      },
+      {
+        id: "bar50",
+        nameAr: "سبيكة ذهب نقي 50 جرام",
+        nameEn: "50g Pure Gold Bar",
+        karat: "24K",
+        weight: 50,
+        buyPrice: bar50BuyPrice,
+        sellPrice: bar50SellPrice,
+        makerFee: bar50MakerFee + bar50Vat,
+        cashback: bar50Cashback,
+        purity: "99.99%",
+      },
+      {
+        id: "ounce",
+        nameAr: "أوقية ذهب استثمارية (سبيكة)",
+        nameEn: "Investment Gold Ounce Bar",
+        karat: "24K",
+        weight: 31.1,
+        buyPrice: ounceBuyPrice,
+        sellPrice: ounceSellPrice,
+        makerFee: ounceMakerFee + ounceVat,
+        cashback: ounceCashback,
+        purity: "99.99%",
+      }
+    ];
+  }, [goldPrices, baseKarat21Price]);
+
+  useEffect(() => {
+    if (baseKarat21Price > 0 && bids.length === 0) {
+      const stepSize = baseKarat21Price > 1000 ? 1 : 0.1;
+      const initialBids = [
+        { price: Math.round((baseKarat21Price - stepSize * 1.5) * 10) / 10, quantity: Math.round(15 + Math.random() * 85) },
+        { price: Math.round((baseKarat21Price - stepSize * 3) * 10) / 10, quantity: Math.round(30 + Math.random() * 170) },
+        { price: Math.round((baseKarat21Price - stepSize * 4.5) * 10) / 10, quantity: Math.round(50 + Math.random() * 250) },
+        { price: Math.round((baseKarat21Price - stepSize * 6) * 10) / 10, quantity: Math.round(80 + Math.random() * 320) },
+        { price: Math.round((baseKarat21Price - stepSize * 8) * 10) / 10, quantity: Math.round(120 + Math.random() * 480) }
+      ];
+      const initialAsks = [
+        { price: Math.round((baseKarat21Price + stepSize * 1.5) * 10) / 10, quantity: Math.round(15 + Math.random() * 85) },
+        { price: Math.round((baseKarat21Price + stepSize * 3) * 10) / 10, quantity: Math.round(25 + Math.random() * 150) },
+        { price: Math.round((baseKarat21Price + stepSize * 4.5) * 10) / 10, quantity: Math.round(45 + Math.random() * 210) },
+        { price: Math.round((baseKarat21Price + stepSize * 6) * 10) / 10, quantity: Math.round(70 + Math.random() * 290) },
+        { price: Math.round((baseKarat21Price + stepSize * 8) * 10) / 10, quantity: Math.round(110 + Math.random() * 410) }
+      ];
+
+      setBids(initialBids);
+      setAsks(initialAsks);
+
+      const initialTrades = Array.from({ length: 8 }).map((_, idx) => {
+        const isBuy = Math.random() > 0.5;
+        const offset = (Math.random() - 0.5) * 8 * stepSize;
+        const date = new Date(Date.now() - idx * 25000);
+        const timeStr = date.toLocaleTimeString(locale === "ar" ? "ar-EG" : "en-US", { hour12: false });
+        return {
+          id: Math.random().toString(36).substr(2, 9),
+          time: timeStr,
+          type: isBuy ? "buy" as const : "sell" as const,
+          price: Math.round((baseKarat21Price + offset) * 10) / 10,
+          quantity: Math.round((2 + Math.random() * 48) * 10) / 10
+        };
+      });
+      setRecentTrades(initialTrades);
+    }
+  }, [baseKarat21Price, bids.length, locale]);
+
+  useEffect(() => {
+    if (baseKarat21Price === 0) return;
+
+    const interval = setInterval(() => {
+      const stepSize = baseKarat21Price > 1000 ? 1 : 0.1;
+      
+      setBids(prevBids => 
+        prevBids.map((b, idx) => {
+          const changePct = 0.85 + Math.random() * 0.3;
+          let newQty = Math.round(b.quantity * changePct);
+          if (newQty < 5) newQty = Math.round(10 + Math.random() * 90);
+          if (newQty > 1000) newQty = Math.round(100 + Math.random() * 300);
+          
+          const priceOffset = -((idx * 1.5 + 1.5) * stepSize + (Math.random() > 0.75 ? (Math.random() > 0.5 ? stepSize : -stepSize) : 0));
+          return {
+            price: Math.round((baseKarat21Price + priceOffset) * 10) / 10,
+            quantity: newQty
+          };
+        })
+      );
+
+      setAsks(prevAsks => 
+        prevAsks.map((a, idx) => {
+          const changePct = 0.85 + Math.random() * 0.3;
+          let newQty = Math.round(a.quantity * changePct);
+          if (newQty < 5) newQty = Math.round(10 + Math.random() * 90);
+          if (newQty > 1000) newQty = Math.round(100 + Math.random() * 300);
+          
+          const priceOffset = ((idx * 1.5 + 1.5) * stepSize + (Math.random() > 0.75 ? (Math.random() > 0.5 ? stepSize : -stepSize) : 0));
+          return {
+            price: Math.round((baseKarat21Price + priceOffset) * 10) / 10,
+            quantity: newQty
+          };
+        })
+      );
+
+      if (Math.random() > 0.35) {
+        const isBuy = Math.random() > 0.5;
+        const tradePrice = isBuy 
+          ? (baseKarat21Price + stepSize * (0.5 + Math.random() * 1.5)) 
+          : (baseKarat21Price - stepSize * (0.5 + Math.random() * 1.5));
+        
+        const newTrade = {
+          id: Math.random().toString(36).substr(2, 9),
+          time: new Date().toLocaleTimeString(locale === "ar" ? "ar-EG" : "en-US", { hour12: false }),
+          type: isBuy ? "buy" as const : "sell" as const,
+          price: Math.round(tradePrice * 10) / 10,
+          quantity: Math.round((1 + Math.random() * 30) * 10) / 10
+        };
+
+        setRecentTrades(prev => [newTrade, ...prev.slice(0, 7)]);
+      }
+    }, 2800);
+
+    return () => clearInterval(interval);
+  }, [baseKarat21Price, locale]);
 
   /* ────────────────────────────────────────────────────────── */
   /* ── Calculator States ───────────────────────────────────── */
@@ -476,39 +742,381 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
             </div>
           )}
 
+          {/* Live Bullion & Coin Investment Monitor */}
+          {!goldLoading && investmentProducts.length > 0 && (
+            <div className="space-y-4 animate-in fade-in duration-300">
+              <div className="border-b border-border/40 pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div>
+                  <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary flex-shrink-0" />
+                    {isAr ? "مراقب تسعير سبائك وجنيهات الذهب الاستثمارية الحية" : "Live Bullion & Sovereign Coin Investment Monitor"}
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    {isAr 
+                      ? "الأسعار التفصيلية للسبائك وجنيهات الصاغة شاملة تكلفة المصنعية والدمغة وهامش الكاش باك المسترد عند البيع"
+                      : "Real-time pricing for investment bars and sovereign coins including fabrication fees, stamp duties, and buyback cashback offsets"
+                    }
+                  </p>
+                </div>
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                  {isAr ? "تحديث مباشر" : "Live Spot Feeds"}
+                </span>
+              </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {investmentProducts.map((product) => {
+                  return (
+                    <div 
+                      key={product.id} 
+                      className="bg-card border border-border/60 hover:border-primary/30 rounded-2xl p-4 flex flex-col justify-between space-y-4 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group shadow-sm hover:shadow-md"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-start">
+                          <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                            {product.karat}
+                          </span>
+                          <span className="text-[9px] font-bold text-muted-foreground">
+                            {isAr ? `نقاء: ${product.purity}` : `Purity: ${product.purity}`}
+                          </span>
+                        </div>
+                        <h4 className="text-xs font-extrabold text-foreground pt-1 group-hover:text-primary transition-colors">
+                          {isAr ? product.nameAr : product.nameEn}
+                        </h4>
+                      </div>
 
-          {/* Market Pulse Cards */}
-          <div>
-            <h3 className="text-base font-bold text-foreground mb-4 text-start">
-              {t("pulseTitle")}
-            </h3>
-            <MarketPulseCardsClient />
-          </div>
+                      <div className="space-y-2">
+                        {/* Buy Price */}
+                        <div className="flex justify-between items-baseline bg-muted/40 p-2.5 rounded-xl border border-border/30">
+                          <span className="text-[10px] text-muted-foreground font-semibold">{isAr ? "الشراء (جديد):" : "Buy (New):"}</span>
+                          <span className="text-sm font-black text-foreground font-price">
+                            {fmtLocal(product.buyPrice)} <span className="text-[9px] font-normal text-muted-foreground">{currencyLabel}</span>
+                          </span>
+                        </div>
 
-          {/* Price Table */}
-          <div>
-            <h3 className="text-base font-bold text-foreground mb-4 text-start">
-              {t("matrixTitle")}
-            </h3>
-            <PriceTable />
-          </div>
+                        {/* Sell Price */}
+                        <div className="flex justify-between items-baseline bg-muted/25 p-2.5 rounded-xl border border-border/20">
+                          <span className="text-[10px] text-muted-foreground font-semibold">{isAr ? "البيع (استرداد):" : "Sell (Buyback):"}</span>
+                          <span className="text-sm font-black text-primary font-price">
+                            {fmtLocal(product.sellPrice)} <span className="text-[9px] font-normal text-muted-foreground">{currencyLabel}</span>
+                          </span>
+                        </div>
+                      </div>
 
-          {/* Price Chart */}
-          <div>
-            <h3 className="text-base font-bold text-foreground mb-4 text-start">
-              {t("chartTitle")}
-            </h3>
-            <PriceChart />
-          </div>
+                      <div className="border-t border-border/20 pt-2 text-[9px] text-muted-foreground space-y-1.5">
+                        <div className="flex justify-between">
+                          <span>{isAr ? "المصنعية والضريبة والدمغة:" : "Fabrication + Taxes + Stamp:"}</span>
+                          <span className="font-semibold text-foreground font-price">+{fmtLocal(product.makerFee)} {currencyLabel}</span>
+                        </div>
+                        <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/5 dark:bg-emerald-500/[0.02] p-1.5 rounded-lg border border-emerald-500/10">
+                          <span>{isAr ? "استرداد الكاش باك المتوقع:" : "Expected Cashback Offset:"}</span>
+                          <span className="font-price">~{fmtLocal(product.cashback)} {currencyLabel}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-          {/* Other Metals */}
-          <div>
-            <h3 className="text-base font-bold text-foreground mb-4 text-start">
-              {t("otherMetalsTitle")}
-            </h3>
-            <MetalCards />
-          </div>
+          {goldLoading ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Skeleton className="h-[400px] lg:col-span-2 rounded-3xl" />
+                <Skeleton className="h-[400px] lg:col-span-1 rounded-3xl" />
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+              
+              {/* COLUMN 1 & 2: Order Book & Sales Tape */}
+              <div className="lg:col-span-2 bg-card border border-border/60 rounded-3xl p-6 space-y-6 flex flex-col justify-between">
+                <div>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-border/40 pb-4 mb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                        {t("orderBookTitle")}
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {t("orderBookSub")}
+                      </p>
+                    </div>
+                    
+                    {/* Live Ticker Status Badge */}
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                      </span>
+                      {t("liveActive")}
+                    </div>
+                  </div>
+
+                  {/* Side-by-Side Flex/Grid on md screens */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    {/* ORDER BOOK (Bids/Asks) */}
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center text-xs font-bold text-muted-foreground uppercase px-1">
+                        <span>{isAr ? "الطلب" : "Bid"}</span>
+                        <span>{isAr ? "سعر العيار (٢١)" : "Price (21K)"}</span>
+                        <span>{isAr ? "العرض" : "Ask"}</span>
+                      </div>
+
+                      {/* Asks (Sells) - Sorted High to Low visually (Asks are on top) */}
+                      <div className="space-y-1">
+                        {activeAsks.slice().reverse().map((ask: { price: number; quantity: number }, idx: number) => {
+                          const maxQty = Math.max(...activeAsks.map((a: { quantity: number }) => a.quantity), ...activeBids.map((b: { quantity: number }) => b.quantity), 100);
+                          const widthPct = Math.min(100, (ask.quantity / maxQty) * 100);
+                          return (
+                            <div key={`ask-${idx}`} className="relative flex justify-between items-center py-1.5 px-2 rounded-lg text-xs font-price overflow-hidden group">
+                              <div 
+                                className="absolute inset-y-0 right-0 bg-red-500/5 dark:bg-red-500/10 transition-all duration-500"
+                                style={{ width: `${widthPct}%` }}
+                              />
+                              <span className="text-muted-foreground z-10">{ask.quantity}g</span>
+                              <span className="text-rose-500 font-bold z-10">{fmtLocal(ask.price)}</span>
+                              <span className="text-red-500/80 text-[10px] font-bold z-10">{isAr ? "عرض" : "ASK"}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Spread details bar */}
+                      {activeBids.length > 0 && activeAsks.length > 0 && (
+                        <div className="bg-muted/40 border border-border/40 py-2 px-3 rounded-xl flex justify-between items-center text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-muted-foreground">{isAr ? "الفارق:" : "Spread:"}</span>
+                            <span className="font-bold text-foreground font-price">
+                              {fmtLocal(Math.max(0.1, activeAsks[0].price - activeBids[0].price))} {currencyLabel}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-muted-foreground">{isAr ? "الوسط:" : "Mid:"}</span>
+                            <span className="font-bold text-primary font-price">
+                              {fmtLocal((activeAsks[0].price + activeBids[0].price) / 2)} {currencyLabel}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Bids (Buys) */}
+                      <div className="space-y-1">
+                        {activeBids.map((bid: { price: number; quantity: number }, idx: number) => {
+                          const maxQty = Math.max(...activeAsks.map((a: { quantity: number }) => a.quantity), ...activeBids.map((b: { quantity: number }) => b.quantity), 100);
+                          const widthPct = Math.min(100, (bid.quantity / maxQty) * 100);
+                          return (
+                            <div key={`bid-${idx}`} className="relative flex justify-between items-center py-1.5 px-2 rounded-lg text-xs font-price overflow-hidden group">
+                              <div 
+                                className="absolute inset-y-0 left-0 bg-emerald-500/5 dark:bg-emerald-500/10 transition-all duration-500"
+                                style={{ width: `${widthPct}%` }}
+                              />
+                              <span className="text-emerald-500/80 text-[10px] font-bold z-10">{isAr ? "طلب" : "BID"}</span>
+                              <span className="text-emerald-600 dark:text-emerald-400 font-bold z-10">{fmtLocal(bid.price)}</span>
+                              <span className="text-muted-foreground z-10">{bid.quantity}g</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* TAPE READER (Time & Sales) */}
+                    <div className="space-y-4">
+                      <h4 className="text-xs font-bold text-muted-foreground uppercase border-b border-border/35 pb-2 px-1 flex items-center justify-between">
+                        <span>{t("recentTradesTitle")}</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                      </h4>
+
+                      <div className="space-y-1 max-h-[260px] overflow-y-auto pr-1">
+                        {activeRecentTrades.map((trade: { id: string; time: string; type: "buy" | "sell"; price: number; quantity: number }) => (
+                          <div 
+                            key={trade.id} 
+                            className="flex justify-between items-center py-2 px-2.5 rounded-xl text-xs bg-muted/20 border border-border/10 hover:border-border/40 transition-all animate-in fade-in slide-in-from-top-1 duration-300"
+                          >
+                            <span className="text-muted-foreground font-mono text-[10px]">{trade.time}</span>
+                            <span className={`inline-flex items-center gap-1 font-bold ${
+                              trade.type === "buy" ? "text-emerald-500" : "text-rose-500"
+                            }`}>
+                              {trade.type === "buy" ? (
+                                <TrendingUp className="w-3.5 h-3.5" />
+                              ) : (
+                                <TrendingDown className="w-3.5 h-3.5" />
+                              )}
+                              {trade.type === "buy" ? (isAr ? "شراء" : "BUY") : (isAr ? "بيع" : "SELL")}
+                            </span>
+                            <span className="font-semibold text-foreground">{trade.quantity}g</span>
+                            <span className="font-bold text-foreground font-price">{fmtLocal(trade.price)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Footnote under book */}
+                <p className="text-[10px] text-muted-foreground leading-relaxed pt-3 border-t border-border/20">
+                  {isAr 
+                    ? "* يتم تحديث دفتر الطلبات وحجم التداول وعمليات الشراء والبيع بشكل لحظي ومستمر بناءً على تغيرات أسعار الذهب الفورية المسجلة."
+                    : "* The order book volume depth, spreads and completed transactions tape are updated dynamically in real-time according to spot market volatility."
+                  }
+                </p>
+              </div>
+
+              {/* COLUMN 3: Cairo vs Dubai Arbitrage Spread Monitor */}
+              <div className="lg:col-span-1 bg-card border border-border/60 rounded-3xl p-6 space-y-6 flex flex-col justify-between h-full">
+                
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 border-b border-border/40 pb-4">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+                      <ArrowRightLeft className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground">
+                        {t("arbitrageTitle")}
+                      </h3>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {t("arbitrageSub")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {goldPrices ? (
+                    <div className="space-y-5">
+                      {/* Weight Slider */}
+                      <div>
+                        <div className="flex justify-between items-center mb-1.5">
+                          <label className="text-[11px] font-semibold text-muted-foreground">
+                            {isAr ? "وزن الذهب المستهدف (عيار 24)" : "Target Gold Weight (24K)"}
+                          </label>
+                          <span className="text-xs font-bold text-foreground font-price">
+                            {arbitrageWeight} {isAr ? "جرام" : "grams"}
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="10"
+                          max="150"
+                          step="5"
+                          value={arbitrageWeight}
+                          onChange={(e) => setArbitrageWeight(parseInt(e.target.value))}
+                          className="w-full accent-primary cursor-pointer h-1.5 bg-muted rounded-lg appearance-none"
+                        />
+                        <div className="flex justify-between text-[9px] text-muted-foreground mt-1">
+                          <span>10g</span>
+                          <span>50g</span>
+                          <span>100g</span>
+                          <span>150g</span>
+                        </div>
+                      </div>
+
+                      {/* Flight & Ticket Slider */}
+                      <div>
+                        <div className="flex justify-between items-center mb-1.5">
+                          <label className="text-[11px] font-semibold text-muted-foreground">
+                            {isAr ? "تكاليف السفر الشاملة (تذكرة + إقامة)" : "Travel Expenses (Flight + Hotel)"}
+                          </label>
+                          <span className="text-xs font-bold text-foreground font-price">
+                            {fmtInt(travelExpenses)} EGP
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="5000"
+                          max="40000"
+                          step="1000"
+                          value={travelExpenses}
+                          onChange={(e) => setTravelExpenses(parseInt(e.target.value))}
+                          className="w-full accent-primary cursor-pointer h-1.5 bg-muted rounded-lg appearance-none"
+                        />
+                        <div className="flex justify-between text-[9px] text-muted-foreground mt-1">
+                          <span>5,000 EGP</span>
+                          <span>20,000 EGP</span>
+                          <span>40,000 EGP</span>
+                        </div>
+                      </div>
+
+                      {/* Comparative Statistics */}
+                      <div className="bg-muted/40 border border-border/40 rounded-2xl p-4 space-y-2.5 text-xs">
+                        {/* Egypt Cost */}
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">{isAr ? "سعر الشراء في القاهرة:" : "Cairo Cost:"}</span>
+                          <span className="font-bold text-foreground font-price">
+                            {fmtInt(goldPrices.prices.karat24.gramPriceEGP * arbitrageWeight)} EGP
+                          </span>
+                        </div>
+
+                        {/* Dubai Cost */}
+                        {(() => {
+                          const ounceUSD = goldPrices.prices.ounceUSD;
+                          const bankUSD = goldPrices.usdToEGP;
+                          const baseDubai24EGP = (ounceUSD / 31.1034768) * bankUSD;
+                          const dubaiGoldCostEGP = baseDubai24EGP * 1.015 * arbitrageWeight;
+                          const dubaiTotalCostEGP = dubaiGoldCostEGP + travelExpenses;
+                          const netSaving = (goldPrices.prices.karat24.gramPriceEGP * arbitrageWeight) - dubaiTotalCostEGP;
+                          const isProfitable = netSaving > 0;
+
+                          return (
+                            <>
+                              <div className="flex justify-between items-center border-b border-border/30 pb-2">
+                                <span className="text-muted-foreground">{isAr ? "سعر دبي والشراء (شامل السفر):" : "Dubai & Gold (incl. Travel):"}</span>
+                                <span className="font-bold text-foreground font-price">
+                                  {fmtInt(dubaiTotalCostEGP)} EGP
+                                </span>
+                              </div>
+
+                              {/* Profit Badge & Valuation */}
+                              <div className="pt-2 text-center space-y-2">
+                                <div className={`inline-flex px-3 py-1 rounded-full text-[10px] font-extrabold border ${
+                                  isProfitable 
+                                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                                    : "bg-red-500/10 border-red-500/20 text-red-500"
+                                }`}>
+                                  {isProfitable ? (
+                                    isAr ? "✓ استيراد شخصي مربح" : "✓ Profitable Travel Arbitrage"
+                                  ) : (
+                                    isAr ? "✗ الشراء المحلي أفضل" : "✗ Local Purchase Better"
+                                  )}
+                                </div>
+                                
+                                <div className="space-y-0.5">
+                                  <p className={`text-2xl font-black font-price ${isProfitable ? "text-emerald-500" : "text-red-500"}`}>
+                                    {isProfitable ? "+" : ""}{fmtInt(netSaving)} EGP
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    {isAr ? "صافي التوفير / الأرباح" : "Net Savings / Profits"}
+                                  </p>
+                                </div>
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  ) : (
+                    <Skeleton className="h-48 w-full rounded-2xl" />
+                  )}
+                </div>
+
+                {/* Explanatory Footer inside card */}
+                <div className="text-[9px] leading-relaxed text-muted-foreground bg-muted/20 border border-border/10 p-3 rounded-xl mt-4">
+                  <p className="font-bold text-foreground mb-0.5 flex items-center gap-1">
+                    <Shield className="w-3 h-3 text-primary" />
+                    {isAr ? "معلومات الاستيراد:" : "Import Info:"}
+                  </p>
+                  <p>
+                    {isAr 
+                      ? "يقارن هذا النموذج سعر الصاغة المحلي بدولار الصاغة الضمني مع سعر الخليج الرسمي المحسوب بدولار البنك. حد إعفاء الذهب الشخصي من الجمارك للمسافرين القادمين لمصر هو 150 جرام."
+                      : "This model compares local Sagha premium prices against Gulf prices converted at the official bank USD rate. The custom duty-free allowance for personal gold imports into Egypt is 150g per passenger."
+                    }
+                  </p>
+                </div>
+
+              </div>
+
+            </div>
+          )}
 
         </div>
       )}

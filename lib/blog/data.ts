@@ -651,4 +651,232 @@ export const ARTICLES: Article[] = [
       ],
     },
   },
+  {
+    slug: "understanding-gold-technical-analysis",
+    category: "guide",
+    coverImage: "/assets/images/blog/technical-analysis-guide.png",
+    readTime: 15,
+    publishedAt: "2026-06-17",
+    author: {
+      name: { ar: "مستشار سبيكة المالي", en: "Sabika Financial Advisor" },
+      role: { ar: "كبير محللي الأسواق", en: "Chief Market Analyst" },
+      avatar: "S",
+    },
+    title: {
+      ar: "الدليل الشامل للتحليل الفني للذهب: كيف تفهم مؤشرات الزخم، نقاط الارتكاز، وفجوة علاوة الصاغة؟",
+      en: "The Complete Guide to Gold Technical Analysis: Understanding Momentum, Pivot Points, and Implied Premiums",
+    },
+    subtitle: {
+      ar: "تعلم كيفية قراءة معنويات السوق الفنية ونقاط الارتكاز ودراسة فجوة التسعير المحلي، وتطبيق القواعد الاستثمارية الأربعة للذهب.",
+      en: "Learn how to interpret technical market sentiment, pivot points, implied local premiums, and execute the four foundational rules of gold investment.",
+    },
+    excerpt: {
+      ar: "هل تريد فهم كيف يعمل مقياس معنويات الذهب، وكيف تُحتسب نقاط الارتكاز (Classic & Fibonacci)، وكيف تكتشف فقاعات التسعير المحلي من علاوة الصاغة؟ هذا الدليل التعليمي يشرح لك الأسس التقنية والرياضية.",
+      en: "Want to master the math behind gold indicators, pivot points (Classic & Fibonacci), and premium gaps? This comprehensive guide explains the technical dynamics of gold workstation metrics.",
+    },
+    content: {
+      ar: [
+        {
+          type: "heading",
+          text: "التحليل الفني للذهب: المفهوم والأهمية",
+        },
+        {
+          type: "paragraph",
+          text: "التحليل الفني للذهب هو أداة لدراسة سلوك الأسعار التاريخي وحجم التداولات لتوقع اتجاهات السعر المستقبلية. على عكس التحليل الأساسي الذي يركز على العوامل الجيوسياسية والتضخم وقرارات أسعار الفائدة، يعتمد التحليل الفني على فرضية أن حركة السعر تعكس كل المعلومات المتاحة في السوق مسبقاً. يساعد هذا الأسلوب المدخرين والمستثمرين على تحديد التوقيت الأنسب للشراء والبيع بناءً على مستويات دعم ومقاومة حقيقية بدلاً من اتخاذ القرارات بناءً على العواطف ومشاعر الخوف أو الطمع السائدة.",
+        },
+        {
+          type: "heading",
+          text: "مقياس معنويات السوق الفنية (Technical Sentiment Gauge)",
+        },
+        {
+          type: "paragraph",
+          text: "مقياس معنويات السوق الفنية في سبيكة هو مؤشر مركب ذكي يجمع بين قراءات مؤشرات زخم فنية مختلفة لإنتاج نتيجة رقمية موحدة تتراوح من 0 إلى 100. يُبسط هذا المقياس النظرة العامة للاتجاه الفني للذهب على النحو التالي:",
+        },
+        {
+          type: "list",
+          items: [
+            "المنطقة الإيجابية (60 - 100): تشير إلى اتجاه صاعد قوي (شراء أو شراء قوي)، حيث يسود التفاؤل وتتدفق السيولة للشراء.",
+            "المنطقة المحايدة (40 - 60): تشير إلى توازن القوى بين البائعين والمشترين، ويفضل في هذه الحالة المراقبة أو الشراء على دفعات.",
+            "المنطقة السلبية (0 - 40): تشير إلى اتجاه هابط أو تصحيحي (بيع أو بيع قوي)، حيث يسيطر التشاؤم الفني وتتراجع الأسعار مؤقتاً.",
+          ],
+        },
+        {
+          type: "heading",
+          text: "نقاط الارتكاز الفنية (Pivot Points): كلاسيك وفيبوناتشي",
+        },
+        {
+          type: "paragraph",
+          text: "تعتبر نقاط الارتكاز بمثابة خطوط الدفاع والهجوم الفنية التي يراقبها المحترفون. يتم حساب نقطة الارتكاز الأساسية (PP) كمتوسط حسابي لأعلى وأدنى سعر إغلاق للفترة السابقة. ومن ثم نقوم باستنباط مستويات الدعم (Support) والمقاومة (Resistance) عبر طريقتين جوهريتين:",
+        },
+        {
+          type: "list",
+          items: [
+            "الطريقة الكلاسيكية (Classic Pivot): تعتمد على صيغ رياضية خطية قياسية تفترض تحرك السعر في نطاق تذبذب معتاد؛ حيث يمثل الدعم S1 فرصة شراء والمقاومة R1 مستهدف جني أرباح أولي.",
+            "مستويات فيبوناتشي (Fibonacci Levels): تعتمد على استخدام نسب فيبوناتشي الشهيرة (38.2% و 61.8% و 100%) لضرب المدى السعري وإضافته أو طرحه من نقطة الارتكاز. تُعد هذه المستويات هندسية ودقيقة للغاية في تحديد قمم وقيعان الارتداد السعري.",
+          ],
+        },
+        {
+          type: "heading",
+          text: "مؤشرات السوق والزخم: RSI، MACD، SMA 20 ونسبة المعادن",
+        },
+        {
+          type: "paragraph",
+          text: "تعتمد قراءات سبيكة الفنية على توليفة من أهم خمسة مدخلات رياضية لسوق المال:",
+        },
+        {
+          type: "list",
+          items: [
+            "مؤشر القوة النسبية RSI (14): يقيس سرعة حركة السعر. إذا كان تحت 30 يكون الذهب في حالة 'تشبع بيع' (فرصة شراء ذهبية)، وإذا تجاوز 70 يكون في حالة 'تشبع شراء' (مخاطرة شراء قمم).",
+            "مؤشر الماكد MACD: يقيس التغير في زخم الاتجاه عبر مقارنة المتوسطات المتحركة الأسية (EMA) لـ 12 و 26 يوماً. التقاطع الإيجابي للماكد يشير لبدء موجة صعودية قوية.",
+            "المتوسط المتحرك البسيط SMA (20): يوضح متوسط حركة السعر لآخر 20 يوماً. إذا كان السعر فوق المتوسط فالاتجاه صاعد وصحي، وإذا كان تحته فالاتجاه تصحيحي وهابط.",
+            "نسبة الذهب إلى الفضة (Gold-to-Silver Ratio): مؤشر يقيس عدد أوقيات الفضة اللازمة لشراء أوقية ذهب واحدة. عندما تتجاوز النسبة 80، فهذا يعني تاريخياً أن الفضة رخيصة للغاية مقارنة بالذهب، مما يمثل فرصة استثمارية ممتازة لتنويع المحفظة في الفضة.",
+            "علاوة الصاغة (Local Premium Index): يقيس نسبة زيادة السعر المحلي عن العالمي بعد احتساب الضرائب والدمغة المعتادة لتقدير مدى سلامة السعر الاسترشادي.",
+          ],
+        },
+        {
+          type: "heading",
+          text: "تحليل التسعير وفجوة العلاوة المحلية (Premium %)",
+        },
+        {
+          type: "paragraph",
+          text: "يعتمد الذهب محلياً على آلية دولار الصاغة الضمني. تتيح لك شاشة تفكيك التسعير معرفة الفارق بين دولار الصاغة وسعر البنك الرسمي. ويتم تقسيم مؤشر العلاوة المحلية إلى ثلاث مناطق إرشادية واضحة:",
+        },
+        {
+          type: "table",
+          headers: ["مؤشر العلاوة المحلية", "المدلول الاقتصادي والمالي", "التوصية الاستثمارية المطبقة"],
+          rows: [
+            ["المنطقة الخضراء (أقل من 3%)", "تسعير عادل وآمن متوافق تماماً مع الأسعار العالمية والدمغة المعتادة.", "فرصة ممتازة وآمنة للشراء والادخار الكامل."],
+            ["المنطقة الصفراء (بين 3% إلى 8%)", "تضخم معتدل بالأسعار محلياً نتيجة زيادة الطلب أو مخاوف انخفاض العملة.", "يُنصح بتفعيل الشراء على أجزاء (DCA) وتجنب ضخ كامل السيولة دفعة واحدة."],
+            ["المنطقة الحمراء (أعلى من 8%)", "مضاربة مفرطة ومخاطر فقاعة سعرية محلية حادة قد تنفجر في أي وقت.", "الحذر الشديد والتأني وتأجيل الشراء لتفادي خسارة رأس المال عند تصحيح الأسعار."],
+          ],
+        },
+        {
+          type: "heading",
+          text: "القواعد الاقتصادية الأربعة للاستثمار بالذهب",
+        },
+        {
+          type: "paragraph",
+          text: "لحماية أموالك وتحقيق أفضل عائد استثماري، يجب عليك الالتزام بالقواعد الاقتصادية الأربعة للذهب:",
+        },
+        {
+          type: "list",
+          items: [
+            "1. قاعدة نسبة الذهب للفضة: استغل النسبة التاريخية لتنويع محفظتك المعادن الثمينة بنسب مرنة تعزز العوائد التراكمية.",
+            "2. قاعدة متوسط التكلفة (DCA): استثمر مبالغ ثابتة بانتظام شهرياً لتجميع جرامات أكثر بمتوسط سعر أقل وتجنب مخاطر الشراء في القمم.",
+            "3. قانون المصنعيات وتكلفة التاجر: اشترِ سبائك وجنيهات مغلفة للاستفادة من استرداد المصنعية (الكاش باك) وتجنب المشغولات العادية التي تفقد كامل مصنعيتها الكبيرة عند البيع.",
+            "4. علاقة الفائدة الأمريكية والقرارات الفيدرالية: تذكر أن الذهب يزدهر تاريخياً عندما تكون معدلات الفائدة الحقيقية منخفضة أو سالبة، وتأخذ الاتجاه العكسي عند استقرار الفائدة المرتفعة مع تراجع التضخم.",
+          ],
+        },
+        {
+          type: "heading",
+          text: "إشارة الاستثمار والقرار النهائي",
+        },
+        {
+          type: "paragraph",
+          text: "تعد إشارة الاستثمار الفورية في سبيكة محصلة رياضية وديناميكية لكل ما سبق. يقوم النظام بوزن قراءات المؤشرات الفنية، مستويات الدعم والمقاومة الحالية، وفجوة التسعير وعلاوة الصاغة المحلية ليصدر قراراً واضحاً (شراء قوي، شراء، محايد، بيع، بيع قوي) مدعوماً بتحليل ذكاء اصطناعي مفصل يفسر لك مسببات القرار لمساعدتك على اتخاذ قرارك بوعي وعلم تام.",
+        },
+      ],
+      en: [
+        {
+          type: "heading",
+          text: "Introduction to Gold Technical Analysis",
+        },
+        {
+          type: "paragraph",
+          text: "Gold technical analysis is the study of historical price actions and trading volumes to forecast future price directions. Unlike fundamental analysis, which focuses on macroeconomic news, geopolitical events, and Fed interest rate decisions, technical analysis assumes that all available public information is already reflected in the price chart. This approach guides gold savers and traders to identify structural support and resistance levels, removing emotions like fear and greed from the investment process.",
+        },
+        {
+          type: "heading",
+          text: "Technical Sentiment Gauge",
+        },
+        {
+          type: "paragraph",
+          text: "The technical sentiment gauge in Sabika is a proprietary composite score ranging from 0 to 100. It aggregates the readings of various oscillators to provide a simplified view of technical trends:",
+        },
+        {
+          type: "list",
+          items: [
+            "Positive Zone (60 - 100): Indicates strong bullish momentum (Buy or Strong Buy) where purchasing volumes dominate.",
+            "Neutral Zone (40 - 60): Reflects a balanced market between buyers and sellers, where watching or buying in batches is favored.",
+            "Negative Zone (0 - 40): Flags bearish corrections (Sell or Strong Sell) indicating temporary downward price momentum.",
+          ],
+        },
+        {
+          type: "heading",
+          text: "Technical Pivot Points: Classic vs. Fibonacci",
+        },
+        {
+          type: "paragraph",
+          text: "Pivot points serve as key horizontal lines watched by trading professionals. The central pivot point (PP) is calculated as the average of the previous period's high, low, and close prices. From this baseline, support (S) and resistance (R) levels are extracted via two main methods:",
+        },
+        {
+          type: "list",
+          items: [
+            "Classic Pivot Method: Employs standard linear formulas assuming price oscillates within normal bands. S1 acts as a buying trigger while R1 behaves as a profit-taking level.",
+            "Fibonacci Retracement Levels: Uses specific golden ratios (38.2%, 61.8%, 100%) multiplied by the price range and plotted from the pivot point. These levels provide geometric accuracy in identifying price reversal zones.",
+          ],
+        },
+        {
+          type: "heading",
+          text: "Market Indicators and Momentum Oscillators",
+        },
+        {
+          type: "paragraph",
+          text: "Sabika's workstation tracks five key technical market parameters:",
+        },
+        {
+          type: "list",
+          items: [
+            "Relative Strength Index (RSI 14): Measures price velocity. Readings below 30 indicate an oversold condition (buying opportunity), while levels above 70 flag overbought risk.",
+            "MACD (Moving Average Convergence Divergence): Tracks momentum shifts by comparing the 12 and 26-day exponential moving averages (EMA). Bullish crossovers signal buying momentum.",
+            "Simple Moving Average (SMA 20): Represents the average price of the last 20 days. Trading above this line indicates a healthy uptrend, while trading below signals corrective pressure.",
+            "Gold-to-Silver Ratio: Measures how many ounces of silver buy one ounce of gold. Ratios above 80 historically signal that silver is undervalued relative to gold, making it an excellent opportunity to diversify.",
+            "Local Markup Premium Index: Measures local gold price deviations relative to international benchmarks, helping users spot speculation.",
+          ],
+        },
+        {
+          type: "heading",
+          text: "Pricing Analysis and Implied Premium Gap (Premium %)",
+        },
+        {
+          type: "paragraph",
+          text: "Local gold is priced via an implied gold USD exchange rate. The pricing breakdown deconstructs this premium relative to official bank rates, classifying the premium into three strategic zones:",
+        },
+        {
+          type: "table",
+          headers: ["Premium Index Level", "Macroeconomic Interpretation", "Strategic Recommendation"],
+          rows: [
+            ["Green Zone (Less than 3%)", "Fair and safe local pricing matching global spot gold parity.", "Highly recommended window for bulk buying and long-term saving."],
+            ["Yellow Zone (3% to 8%)", "Moderate local inflation markup due to rising demand or currency hedges.", "Recommended to buy in batches (DCA) to average entry costs."],
+            ["Red Zone (Greater than 8%)", "Extreme speculative markup and local bubble risks.", "Exercise caution. Postpone buying to avoid losses during eventual price corrections."],
+          ],
+        },
+        {
+          type: "heading",
+          text: "The Four Economic Rules of Gold Investment",
+        },
+        {
+          type: "paragraph",
+          text: "To optimize returns and protect capital, investors must follow these four core principles:",
+        },
+        {
+          type: "list",
+          items: [
+            "1. Gold-to-Silver Ratio Rule: Utilize historic ratio extremes to diversify and swap gold/silver allocations for compounding gains.",
+            "2. Dollar-Cost Averaging (DCA): Accumulate fixed amounts systematically every month to reduce your average purchase cost and avoid buying market peaks.",
+            "3. Stamping & Making Fee Law: Purchase sealed gold bars and coins that offer cashback rebates on making fees, avoiding decorative jewelry.",
+            "4. Fed Interest Rate Relation: Recognize the inverse correlation; gold thrives when real yields (nominal yields minus inflation) drop into negative ranges.",
+          ],
+        },
+        {
+          type: "heading",
+          text: "Investment Signal & Final Decision",
+        },
+        {
+          type: "paragraph",
+          text: "The instant investment signal in Sabika represents the mathematical synthesis of all indicators, pivot levels, and local premium indexes. The system yields a clear decision (Strong Buy, Buy, Neutral, Sell, Strong Sell) supported by an AI brief that explains market drivers to help you make informed financial decisions.",
+        },
+      ],
+    },
+  },
 ];

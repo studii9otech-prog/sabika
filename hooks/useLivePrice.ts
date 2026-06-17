@@ -178,6 +178,20 @@ export function useMarketSignal() {
   return { data, error, isLoading };
 }
 
+export function useMarketDepth() {
+  const { data, error, isLoading } = useSWR(
+    "/api/prices/market-depth",
+    fetcher,
+    {
+      refreshInterval: 3000, // Refresh every 3 seconds for active terminal feel
+      revalidateOnFocus: true,
+      dedupingInterval: 1500,
+    }
+  );
+
+  return { data, error, isLoading };
+}
+
 /**
  * Connects to /api/prices/ounce using Server-Sent Events (SSE) for sub-second,
  * real-time streaming updates. Falls back gracefully to standard polling if needed.
