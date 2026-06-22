@@ -2,6 +2,7 @@
 
 import { useTranslations, useLocale } from "next-intl";
 import { useActivePrices, usePriceHistory, useMetals } from "@/hooks/useLivePrice";
+import { safeDivide } from "@/lib/utils/safeCalc";
 import { 
   BarChart3, 
   Calendar, 
@@ -30,11 +31,12 @@ function calculateRSI(prices: number[]): number {
     if (diff > 0) gains += diff;
     else losses -= diff;
   }
-  const avgGain = gains / (prices.length - 1);
-  const avgLoss = losses / (prices.length - 1);
+  const count = prices.length - 1;
+  const avgGain = safeDivide(gains, count, 0);
+  const avgLoss = safeDivide(losses, count, 0);
   if (avgLoss === 0) return 100;
-  const rs = avgGain / avgLoss;
-  return Math.round(100 - (100 / (1 + rs)));
+  const rs = safeDivide(avgGain, avgLoss, 0);
+  return Math.round(100 - safeDivide(100, 1 + rs, 0));
 }
 
 function calculateEMA(prices: number[], period: number): number {

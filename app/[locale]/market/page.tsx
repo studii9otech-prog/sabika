@@ -1,5 +1,6 @@
 
 import MarketDashboard from "@/components/market/MarketDashboard";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { Coins } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
@@ -60,7 +61,12 @@ export default async function MarketPage({ params }: PageProps) {
       </div>
 
       {/* Interactive Hub Dashboard */}
-      <MarketDashboard locale={locale} />
+      <ErrorBoundary
+        fallbackTitle="تعذّر تحميل لوحة السوق المباشر"
+        fallbackDescription="حدث خطأ في تحميل بيانات السوق. يرجى تحديث الصفحة أو المحاولة لاحقاً."
+      >
+        <MarketDashboard locale={locale} />
+      </ErrorBoundary>
     </div>
   );
 }

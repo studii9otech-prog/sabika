@@ -8,7 +8,6 @@ export default function Footer() {
   const t = useTranslations("footer");
   const tNav = useTranslations("nav");
   const locale = useLocale();
-  const year = new Date().getFullYear();
   const isAr = locale === "ar";
 
   const links = [
@@ -122,7 +121,7 @@ export default function Footer() {
         {/* Bottom Copyright & Live Status */}
         <div className="border-t border-white/[0.06] mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-zinc-500 text-[11px]">
-            © {year} {tNav("brand")} · {t("rights")}
+            © <span suppressHydrationWarning>{new Date().getFullYear()}</span> {tNav("brand")} · {t("rights")}
           </p>
           
           {/* Pulse Indicator styled as a Pill Badge */}

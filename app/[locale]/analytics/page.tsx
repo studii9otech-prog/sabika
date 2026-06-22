@@ -1,6 +1,7 @@
 import PriceChart from "@/components/charts/PriceChart";
 import SignalCard from "@/components/advisor/SignalCard";
 import AnalysisCards from "@/components/analytics/AnalysisCards";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { getTranslations } from "next-intl/server";
 import { getBaseUrl } from "@/lib/utils";
 import Link from "next/link";
@@ -57,7 +58,9 @@ export default async function AnalyticsPage({ params }: PageProps) {
 
         {/* Main Chart */}
         <section className="mb-10">
-          <PriceChart />
+          <ErrorBoundary inline fallbackTitle="تعذّر تحميل الرسم البياني">  
+            <PriceChart />
+          </ErrorBoundary>
         </section>
 
         {/* Analysis Cards */}
@@ -65,7 +68,9 @@ export default async function AnalyticsPage({ params }: PageProps) {
           <h2 className="text-lg font-bold text-foreground mb-6 tracking-tight text-start">
             {t("technicalTitle")}
           </h2>
-          <AnalysisCards />
+          <ErrorBoundary fallbackTitle="تعذّر تحميل بطاقات التحليل الفني" fallbackDescription="بيانات المؤشرات الفنية غير متاحة مؤقتاً. الأسعار المباشرة تعمل بشكل طبيعي.">
+            <AnalysisCards />
+          </ErrorBoundary>
         </section>
 
         {/* Signal */}
@@ -74,7 +79,9 @@ export default async function AnalyticsPage({ params }: PageProps) {
             {t("signalTitle")}
           </h2>
           <div className="max-w-md">
-            <SignalCard />
+            <ErrorBoundary inline fallbackTitle="تعذّر تحميل إشارة الاستثمار">
+              <SignalCard />
+            </ErrorBoundary>
           </div>
         </section>
       </div>

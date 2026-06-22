@@ -3,6 +3,7 @@ import {
   calculateAllKarats,
   MOCK_GOLD_DATA,
 } from "@/lib/calculations/goldPrice";
+import { priceHistoryStore } from "@/lib/priceHistory";
 
 export const revalidate = 30; // Cache revalidation in Next.js
 
@@ -243,6 +244,12 @@ export async function GET() {
 
       const responseData = buildResponseFromData(parsedData);
       memoryCache = responseData;
+
+      // ── حفظ snapshot حقيقية في Price History Engine ──────────────────
+      if (parsedData.prices.karat21 > 0) {
+        priceHistoryStore.add(parsedData.prices.karat21);
+      }
+
       return NextResponse.json(responseData);
     }
   } catch (error) {

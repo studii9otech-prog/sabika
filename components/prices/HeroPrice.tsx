@@ -11,6 +11,7 @@ import { formatPriceChange, formatChange, getSecondsSince } from "@/lib/utils/fo
 import { generateMockHistory } from "@/lib/calculations/goldPrice";
 import { TrendingUp, TrendingDown, Minus, RefreshCw } from "lucide-react";
 import HeroChart from "@/components/charts/HeroChart";
+import SharePriceCard from "@/components/prices/SharePriceCard";
 
 const KARATS = ["21", "18", "24", "14", "12"] as const;
 type PricesKey = "karat12" | "karat14" | "karat18" | "karat21" | "karat24";
@@ -101,6 +102,9 @@ export default function HeroPrice() {
   const chartMin = pricesList.length ? Math.min(...pricesList) : (priceData?.gramPriceEGP ?? 0) * 0.995;
   const chartMax = pricesList.length ? Math.max(...pricesList) : (priceData?.gramPriceEGP ?? 0) * 1.005;
 
+  /* ─── Spark prices for Share Card (raw numbers only) ────── */
+  const sparkPrices = pricesList;
+
   /* ─── Trend color ────────────────────────────────────────── */
   const trendColor = isUp ? "#10B981" : isDown ? "#EF4444" : "#B8960C";
 
@@ -152,10 +156,13 @@ export default function HeroPrice() {
           );
         })}
 
-        {/* Live dot — pushed to end */}
-        <div className="ms-auto flex items-center gap-1.5 text-[11px] font-semibold text-zinc-400 dark:text-zinc-500">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          {isAr ? "مباشر" : "Live"}
+        {/* Live dot + Share button — pushed to end */}
+        <div className="ms-auto flex items-center gap-2">
+          <SharePriceCard selectedKarat={selectedKarat} sparkPrices={sparkPrices} />
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-400 dark:text-zinc-500">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            {isAr ? "مباشر" : "Live"}
+          </div>
         </div>
       </div>
 

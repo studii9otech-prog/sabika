@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useActivePrices, useMetals, useMarketSignal, usePriceHistory, useMarketDepth } from "@/hooks/useLivePrice";
+import { safeDivide } from "@/lib/utils/safeCalc";
 import PriceTable from "@/components/prices/PriceTable";
 import MetalCards from "@/components/prices/MetalCards";
 import MarketPulseCardsClient from "@/components/prices/MarketPulseCards";
@@ -96,7 +97,7 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
       const topBid = parseFloat(apiDepthData.depth.bids[0][0]);
       const topAsk = parseFloat(apiDepthData.depth.asks[0][0]);
       const paxgSpotPrice = (topBid + topAsk) / 2;
-      const priceScale = baseKarat21Price > 0 ? (baseKarat21Price / paxgSpotPrice) : 1;
+      const priceScale = safeDivide(baseKarat21Price, paxgSpotPrice, 1);
 
       return apiDepthData.depth.bids.map((b: [string, string]) => {
         const p = parseFloat(b[0]);
@@ -115,7 +116,7 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
       const topBid = parseFloat(apiDepthData.depth.bids[0][0]);
       const topAsk = parseFloat(apiDepthData.depth.asks[0][0]);
       const paxgSpotPrice = (topBid + topAsk) / 2;
-      const priceScale = baseKarat21Price > 0 ? (baseKarat21Price / paxgSpotPrice) : 1;
+      const priceScale = safeDivide(baseKarat21Price, paxgSpotPrice, 1);
 
       return apiDepthData.depth.asks.map((a: [string, string]) => {
         const p = parseFloat(a[0]);
@@ -134,7 +135,7 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
       const topBid = apiDepthData.depth?.bids?.[0]?.[0] ? parseFloat(apiDepthData.depth.bids[0][0]) : 4200;
       const topAsk = apiDepthData.depth?.asks?.[0]?.[0] ? parseFloat(apiDepthData.depth.asks[0][0]) : 4200;
       const paxgSpotPrice = (topBid + topAsk) / 2;
-      const priceScale = baseKarat21Price > 0 ? (baseKarat21Price / paxgSpotPrice) : 1;
+      const priceScale = safeDivide(baseKarat21Price, paxgSpotPrice, 1);
 
       return apiDepthData.trades.map((t: any) => {
         const date = new Date(t.time);
@@ -440,11 +441,11 @@ export default function MarketDashboard({ locale }: MarketDashboardProps) {
 
     // Implied USD exchange rate priced into local gold
     // local 24k gram price * 31.1035 (grams per ounce) / global ounce USD
-    const impliedUSD = (local24 * 31.1035) / ounceUSD;
+    const impliedUSD = safeDivide(local24 * 31.1035, ounceUSD, bankUSD);
     
     // Local gold premium over global spot EGP rate (translated at bank rate)
-    const global24EGP = (ounceUSD / 31.1035) * bankUSD;
-    const localPremiumPercent = ((local24 - global24EGP) / global24EGP) * 100;
+    const global24EGP = safeDivide(ounceUSD, 31.1035, 0) * bankUSD;
+    const localPremiumPercent = safeDivide((local24 - global24EGP) * 100, global24EGP, 0);
 
     return {
       impliedUSD,

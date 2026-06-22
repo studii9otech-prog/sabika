@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, Locale } from "@/lib/utils/format";
 import { useTranslations, useLocale } from "next-intl";
 import HistoryChart from "./HistoryChart";
+import SharePriceCard from "@/components/prices/SharePriceCard";
 
 type Period = "1D" | "1W" | "1M" | "3M" | "1Y" | "5Y";
 const PERIODS: Period[] = ["1D", "1W", "1M", "3M", "1Y", "5Y"];
@@ -120,21 +121,27 @@ export default function PriceChart() {
           </p>
         </div>
 
-        {/* Period selector */}
-        <div className="grid grid-cols-6 sm:flex items-center gap-0.5 bg-muted/60 rounded-xl p-1 w-full sm:w-auto">
-          {PERIODS.map((key) => (
-            <button
-              key={key}
-              onClick={() => setPeriod(key)}
-              className={`px-1 py-1.5 sm:px-2.5 sm:py-1.5 text-[10px] sm:text-xs font-bold rounded-lg transition-all duration-150 text-center whitespace-nowrap cursor-pointer ${
-                period === key
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tPeriods(key)}
-            </button>
-          ))}
+        {/* Period selector + Share */}
+        <div className="flex items-center gap-2">
+          <div className="grid grid-cols-6 sm:flex items-center gap-0.5 bg-muted/60 rounded-xl p-1 w-full sm:w-auto">
+            {PERIODS.map((key) => (
+              <button
+                key={key}
+                onClick={() => setPeriod(key)}
+                className={`px-1 py-1.5 sm:px-2.5 sm:py-1.5 text-[10px] sm:text-xs font-bold rounded-lg transition-all duration-150 text-center whitespace-nowrap cursor-pointer ${
+                  period === key
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tPeriods(key)}
+              </button>
+            ))}
+          </div>
+          <SharePriceCard
+            selectedKarat={selectedKarat}
+            sparkPrices={chartData.map((d: { price: number }) => d.price)}
+          />
         </div>
       </div>
 
